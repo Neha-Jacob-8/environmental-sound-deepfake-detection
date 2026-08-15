@@ -1,0 +1,38 @@
+# Audio data - regenerate with src/preprocessing/fetch_subset.py
+data/processed/
+data/raw/
+
+# Metadata CSVs are committed (they are small and describe the subset), except
+# the intermediate per-split files, which can list clips whose download failed.
+data/metadata/*_subset.csv
+
+# Model checkpoints and cached features
+results/models/
+*.pt
+*.pth
+*.ckpt
+*.npy
+*.npz
+
+# Logs
+logs/
+*.log
+
+# Not published: samples by per-generator quota rather than by source group, so
+# it does not preserve the real/fake grouping the rest of the pipeline relies on.
+notebooks/build_subset_colab.py
+
+# Python
+__pycache__/
+*.py[cod]
+.Python
+venv/
+.venv/
+env/
+*.egg-info/
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
