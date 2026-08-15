@@ -1,0 +1,18 @@
+# Core
+numpy>=2.1
+pandas>=2.3
+requests>=2.32
+soundfile>=0.14
+
+# Audio / models
+torch>=2.5
+torchaudio>=2.5
+librosa>=0.11
+
+# Evaluation and plots
+scikit-learn>=1.7
+matplotlib>=3.10
+
+# Only needed for the parquet/streaming route (src/preprocessing/build_subset.py).
+# The default per-clip fetcher does not require it.
+datasets>=5.0
