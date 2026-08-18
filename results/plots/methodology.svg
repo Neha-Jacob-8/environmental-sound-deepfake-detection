@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="960" y="58" text-anchor="middle" font-size="38" font-weight="bold" fill="#0f172a">Methodology — Environmental Sound Deepfake Detection</text>
+  <text x="960" y="95" text-anchor="middle" font-size="23" fill="#475569">Robustness against unseen audio generators (EnvSDD / ESDD 2026)</text>
+
+  <!-- ============ STAGE 1 : DATA ============ -->
+  <rect x="55" y="140" width="420" height="540" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <path d="M55 154 a14 14 0 0 1 14 -14 h392 a14 14 0 0 1 14 14 v46 h-420 z" fill="#2563eb"/>
+  <text x="265" y="186" text-anchor="middle" font-size="25" font-weight="bold" fill="#ffffff">1 · Dataset</text>
+
+  <text x="80" y="240" font-size="21" font-weight="bold" fill="#0f172a">EnvSDD (HuggingFace)</text>
+  <text x="80" y="270" font-size="19" fill="#475569">218,533 clips · 60 GB · CC BY 4.0</text>
+
+  <rect x="80" y="292" width="370" height="132" rx="9" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+  <text x="98" y="320" font-size="19" font-weight="bold" fill="#1e40af">Generator ID reconstruction</text>
+  <text x="98" y="348" font-size="18" fill="#334155">No G01–G07 column exists.</text>
+  <text x="98" y="374" font-size="18" fill="#334155">Derived from the composite key</text>
+  <text x="98" y="400" font-size="18" fill="#334155">(attack_type, generative_model)</text>
+
+  <rect x="80" y="440" width="370" height="150" rx="9" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+  <text x="98" y="468" font-size="19" font-weight="bold" fill="#1e40af">Source-group sampling</text>
+  <text x="98" y="496" font-size="18" fill="#334155">Rows form fixed blocks:</text>
+  <text x="98" y="522" font-size="18" fill="#334155">1 real + its derived fakes</text>
+  <text x="98" y="548" font-size="18" fill="#334155">(5 train/val · 8 test)</text>
+  <text x="98" y="576" font-size="18" font-weight="bold" fill="#15803d">→ no data leakage</text>
+
+  <text x="80" y="628" font-size="18" fill="#475569">Splits kept as published:</text>
+  <text x="80" y="656" font-size="18" fill="#475569">train / validation / test</text>
+
+  <!-- ============ STAGE 2 : PREPROCESSING ============ -->
+  <rect x="521" y="140" width="420" height="540" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <path d="M521 154 a14 14 0 0 1 14 -14 h392 a14 14 0 0 1 14 14 v46 h-420 z" fill="#0891b2"/>
+  <text x="731" y="186" text-anchor="middle" font-size="25" font-weight="bold" fill="#ffffff">2 · Preprocessing</text>
+
+  <rect x="546" y="228" width="370" height="126" rx="9" fill="#ecfeff" stroke="#67e8f9" stroke-width="1.5"/>
+  <text x="564" y="256" font-size="19" font-weight="bold" fill="#0e7490">Audio standardisation</text>
+  <text x="564" y="284" font-size="18" fill="#334155">16 kHz · mono</text>
+  <text x="564" y="310" font-size="18" fill="#334155">4.000 s = 64,000 samples</text>
+  <text x="564" y="336" font-size="18" fill="#334155">16-bit PCM WAV</text>
+
+  <rect x="546" y="372" width="370" height="126" rx="9" fill="#ecfeff" stroke="#67e8f9" stroke-width="1.5"/>
+  <text x="564" y="400" font-size="19" font-weight="bold" fill="#0e7490">Load-time normalisation</text>
+  <text x="564" y="428" font-size="18" fill="#334155">Peak normalise to unit amplitude</text>
+  <text x="564" y="454" font-size="18" fill="#334155">Applied in the Dataset, not on</text>
+  <text x="564" y="480" font-size="18" fill="#334155">disk — raw audio kept for aug.</text>
+
+  <rect x="546" y="516" width="370" height="126" rx="9" fill="#ecfeff" stroke="#67e8f9" stroke-width="1.5"/>
+  <text x="564" y="544" font-size="19" font-weight="bold" fill="#0e7490">Feature extraction</text>
+  <text x="564" y="572" font-size="18" fill="#334155">STFT → Mel filterbank → log</text>
+  <text x="564" y="598" font-size="18" fill="#334155">64 mels × 251 frames</text>
+  <text x="564" y="624" font-size="18" fill="#334155">n_fft 1024 · hop 256</text>
+
+  <!-- ============ STAGE 3 : MODELS ============ -->
+  <rect x="987" y="140" width="420" height="540" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <path d="M987 154 a14 14 0 0 1 14 -14 h392 a14 14 0 0 1 14 14 v46 h-420 z" fill="#7c3aed"/>
+  <text x="1197" y="186" text-anchor="middle" font-size="25" font-weight="bold" fill="#ffffff">3 · Detection Models</text>
+
+  <rect x="1012" y="224" width="370" height="94" rx="9" fill="#faf5ff" stroke="#c4b5fd" stroke-width="1.5"/>
+  <text x="1030" y="252" font-size="19" font-weight="bold" fill="#6d28d9">Level 1 — CNN (baseline)</text>
+  <text x="1030" y="279" font-size="18" fill="#334155">log-Mel → Conv2D ×2 → Dense</text>
+  <text x="1030" y="304" font-size="18" fill="#334155">→ sigmoid</text>
+
+  <rect x="1012" y="330" width="370" height="94" rx="9" fill="#faf5ff" stroke="#c4b5fd" stroke-width="1.5"/>
+  <text x="1030" y="358" font-size="19" font-weight="bold" fill="#6d28d9">Level 2 — AASIST</text>
+  <text x="1030" y="385" font-size="18" fill="#334155">raw waveform (64,000)</text>
+  <text x="1030" y="410" font-size="18" fill="#334155">spectro-temporal graph attention</text>
+
+  <rect x="1012" y="436" width="370" height="94" rx="9" fill="#faf5ff" stroke="#c4b5fd" stroke-width="1.5"/>
+  <text x="1030" y="464" font-size="19" font-weight="bold" fill="#6d28d9">Level 3 — BEATs + AASIST</text>
+  <text x="1030" y="491" font-size="18" fill="#334155">BEATs (frozen, pretrained)</text>
+  <text x="1030" y="516" font-size="18" fill="#334155">→ AASIST back-end</text>
+
+  <rect x="1012" y="542" width="370" height="112" rx="9" fill="#fef3c7" stroke="#f59e0b" stroke-width="2.5"/>
+  <text x="1030" y="570" font-size="19" font-weight="bold" fill="#b45309">Proposed — Feature Fusion</text>
+  <text x="1030" y="597" font-size="18" fill="#334155">CNN branch ⊕ BEATs+AASIST</text>
+  <text x="1030" y="622" font-size="18" fill="#334155">branch → joint classifier</text>
+  <text x="1030" y="646" font-size="17" font-style="italic" fill="#92400e">novelty contribution</text>
+
+  <!-- ============ STAGE 4 : EVALUATION ============ -->
+  <rect x="1453" y="140" width="420" height="540" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+  <path d="M1453 154 a14 14 0 0 1 14 -14 h392 a14 14 0 0 1 14 14 v46 h-420 z" fill="#059669"/>
+  <text x="1663" y="186" text-anchor="middle" font-size="25" font-weight="bold" fill="#ffffff">4 · Evaluation</text>
+
+  <rect x="1478" y="228" width="370" height="118" rx="9" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+  <text x="1496" y="256" font-size="19" font-weight="bold" fill="#047857">Primary metric</text>
+  <text x="1496" y="286" font-size="22" font-weight="bold" fill="#0f172a">EER ↓</text>
+  <text x="1496" y="314" font-size="18" fill="#334155">Equal Error Rate, as used by</text>
+  <text x="1496" y="338" font-size="18" fill="#334155">the ESDD challenge</text>
+
+  <rect x="1478" y="362" width="370" height="96" rx="9" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+  <text x="1496" y="390" font-size="19" font-weight="bold" fill="#047857">Supporting metrics</text>
+  <text x="1496" y="418" font-size="18" fill="#334155">F1 ↑ · ROC-AUC ↑</text>
+  <text x="1496" y="444" font-size="18" fill="#334155">Precision · Recall</text>
+
+  <rect x="1478" y="474" width="370" height="180" rx="9" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+  <text x="1496" y="502" font-size="19" font-weight="bold" fill="#047857">Controlled comparison</text>
+  <text x="1496" y="530" font-size="18" fill="#334155">Seen and unseen EER both</text>
+  <text x="1496" y="556" font-size="18" fill="#334155">computed on the test split, so</text>
+  <text x="1496" y="582" font-size="18" fill="#334155">they share the same real clips</text>
+  <text x="1496" y="608" font-size="18" fill="#334155">and source-domain mix.</text>
+  <text x="1496" y="638" font-size="18" font-weight="bold" fill="#047857">Per-generator EER reported</text>
+
+  <!-- arrows between stages -->
+  <line x1="480" y1="410" x2="516" y2="410" stroke="#64748b" stroke-width="3" marker-end="url(#ar)"/>
+  <line x1="946" y1="410" x2="982" y2="410" stroke="#64748b" stroke-width="3" marker-end="url(#ar)"/>
+  <line x1="1412" y1="410" x2="1448" y2="410" stroke="#64748b" stroke-width="3" marker-end="url(#ar)"/>
+
+  <!-- ============ BOTTOM BAND : GENERATOR SPLIT ============ -->
+  <rect x="55" y="716" width="1818" height="300" rx="14" fill="#ffffff" stroke="#94a3b8" stroke-width="2.5"/>
+  <text x="960" y="757" text-anchor="middle" font-size="26" font-weight="bold" fill="#0f172a">Core Experiment — Generalisation to Unseen Generators</text>
+
+  <line x1="960" y1="778" x2="960" y2="960" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="7,7"/>
+
+  <text x="500" y="800" text-anchor="middle" font-size="21" font-weight="bold" fill="#1e40af">SEEN · used for training</text>
+  <text x="1420" y="800" text-anchor="middle" font-size="21" font-weight="bold" fill="#b91c1c">UNSEEN · test only</text>
+
+  <g font-size="24" font-weight="bold" text-anchor="middle">
+    <rect x="110" y="818" width="180" height="86" rx="9" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text x="200" y="852" fill="#1e3a8a">G01</text>
+    <text x="200" y="882" font-size="17" font-weight="normal" fill="#334155">AudioLDM · TTA</text>
+
+    <rect x="305" y="818" width="180" height="86" rx="9" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text x="395" y="852" fill="#1e3a8a">G02</text>
+    <text x="395" y="882" font-size="17" font-weight="normal" fill="#334155">AudioLDM 2 · TTA</text>
+
+    <rect x="500" y="818" width="180" height="86" rx="9" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text x="590" y="852" fill="#1e3a8a">G03</text>
+    <text x="590" y="882" font-size="17" font-weight="normal" fill="#334155">AudioGen · TTA</text>
+
+    <rect x="695" y="818" width="180" height="86" rx="9" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text x="785" y="852" fill="#1e3a8a">G04</text>
+    <text x="785" y="882" font-size="17" font-weight="normal" fill="#334155">AudioLDM · ATA</text>
+
+    <rect x="1090" y="818" width="180" height="86" rx="9" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
+    <text x="1180" y="852" fill="#7f1d1d">G05</text>
+    <text x="1180" y="882" font-size="17" font-weight="normal" fill="#334155">AudioLCM · TTA</text>
+
+    <rect x="1330" y="818" width="180" height="86" rx="9" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
+    <text x="1420" y="852" fill="#7f1d1d">G06</text>
+    <text x="1420" y="882" font-size="17" font-weight="normal" fill="#334155">TangoFlux · TTA</text>
+
+    <rect x="1570" y="818" width="180" height="86" rx="9" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+    <text x="1660" y="852" fill="#78350f">G07</text>
+    <text x="1660" y="882" font-size="17" font-weight="normal" fill="#334155">AudioLDM 2 · ATA</text>
+  </g>
+
+  <text x="500" y="944" text-anchor="middle" font-size="18" fill="#475569">Train on these four generators only</text>
+  <text x="1420" y="944" text-anchor="middle" font-size="18" fill="#475569">Never seen during training</text>
+
+  <rect x="110" y="962" width="1700" height="42" rx="8" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.5"/>
+  <text x="960" y="989" text-anchor="middle" font-size="18" fill="#78350f">Note: G07 is AudioLDM 2 in audio-to-audio mode, while G02 is the same architecture in text-to-audio mode — only G05 and G06 are architecturally unseen, so G07 is expected to be easier.</text>
+
+  <text x="1873" y="1050" text-anchor="end" font-size="16" fill="#94a3b8">Metrics reported per generator, not pooled · EER as primary measure</text>
+</svg>
