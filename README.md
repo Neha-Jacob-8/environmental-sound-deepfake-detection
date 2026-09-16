@@ -97,6 +97,12 @@ Or all of it at once:
 TRAIN=40 VAL=20 TEST=20 ./run_preprocessing.sh    # smaller pilot
 ```
 
+Or as a notebook — [`notebooks/preprocessing.ipynb`](notebooks/preprocessing.ipynb)
+runs the same pipeline cell by cell, with a manifest summary, spectrograms of one
+source group and a Dataset smoke test at the end. It detects Colab and, when it
+finds it, clones the repo, installs the dependencies, and zips the result up at the
+end so the subset survives the VM being wiped.
+
 `--groups` counts **source recordings**, not clips (train/val groups are 5 clips,
 test groups are 8).
 
@@ -132,12 +138,62 @@ every fetch.
 | Stage | Model | Status |
 |-------|-------|--------|
 | Preprocessing | — | done |
-| Level 1 | CNN on log-Mel spectrograms | not started |
+| Level 1 | CNN on log-Mel spectrograms | done |
 | Level 2 | AASIST (raw waveform) | not started |
 | Level 3 | BEATs + AASIST | not started |
 | Novelty | Augmentation, then CNN + BEATs feature fusion | not started |
 
 Primary metric is **EER**, reported per generator, alongside F1 and AUC.
+
+## Results
+
+### Level 1 — log-Mel CNN (240,737 params)
+
+```bash
+python3 -m src.training.train           # ~3 min on MPS, early-stops around epoch 31
+python3 -m src.evaluation.evaluate      # per-generator EER on the test split
+python3 -m src.evaluation.report        # accuracy/precision/recall/F1 for all splits
+python3 -m src.evaluation.bootstrap_ci  # group-level 95% CIs
+```
+
+Or as a notebook: [`notebooks/training.ipynb`](notebooks/training.ipynb) runs the
+same code with training curves, per-generator bars, score distributions, ROC,
+confusion matrix and the bootstrap, all inline.
+
+Trained on G01–G04 over 1,200 source groups.
+
+| Split | Accuracy | Bal. acc | Precision | Recall | F1 | AUC | EER |
+|---|---|---|---|---|---|---|---|
+| train | 0.9990 | 0.9991 | 0.9998 | 0.9990 | 0.9994 | 1.0000 | 0.0008 |
+| validation | 0.9987 | 0.9992 | 1.0000 | 0.9983 | 0.9992 | 1.0000 | 0.0017 |
+| test | 0.9300 | 0.9286 | 0.9889 | 0.9305 | 0.9588 | 0.9805 | 0.0729 |
+
+Accuracy is not a useful number here: fakes outnumber reals 7:1 on test, so
+answering "fake" every time already scores 87.5%. EER is the reported metric.
+
+Pooled over the test split, with 95% CIs bootstrapped over the 300 test source
+groups (whole groups resampled — clips within a group are correlated):
+
+| | EER | 95% CI |
+|---|---|---|
+| seen (G01–G04) | 0.0242 | [0.0167, 0.0333] |
+| unseen (G05–G07) | 0.0833 | [0.0633, 0.1033] |
+| **generalisation gap** | **+0.0592** | [+0.0411, +0.0767] |
+
+The gap is positive in 2000/2000 bootstrap resamples.
+
+**Run-to-run variation.** Two runs of this identical configuration gave gaps of
++0.0608 and +0.0592 — stable. Individual generators are far noisier at 300 test
+groups (G06 moved 0.0933 → 0.0667 between the two), so per-generator EERs should
+not be compared at this scale without CIs. Enlarging the test split is the cheap
+fix; see the note on scaling below.
+
+**What the failure is not.** Train and validation accuracy sit within 0.03pp of
+each other, so this is not classic overfitting and regularisation has no gap to
+close. The model breaks along a different axis — across *generators* — which the
+validation split cannot see, because it contains only G01–G04. Precision holds on
+test while recall falls on the unseen generators: roughly one unseen fake in seven
+is passed as real.
 
 ## References
 
