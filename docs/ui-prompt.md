@@ -54,11 +54,22 @@ unseen-generator clips clustering in the middle — before the app ever explains
 it. End the round with "you scored 6/10; the detector scores 9.2/10 on
 generators it trained on, and 7.7/10 on ones it didn't."
 
-Audio: load from `/audio/{filename}.wav` (the `sid` and `g` fields in the data
-identify a clip; filenames follow `test_{sid:06d}_{g}.wav`). If a file is
-missing, degrade gracefully — show the clip's data and a "audio not bundled"
-note, never a broken player or an error. The app must be fully usable with no
-audio files present.
+**Audio.** 80 real clips are hosted and fetchable. Build the URL as
+`audioBaseUrl + point.f` — both fields are in the data file. The host sends
+`Access-Control-Allow-Origin: *`, so plain `<audio>` playback and Web Audio
+decoding (for a waveform or spectrogram) both work; set `crossOrigin="anonymous"`
+if you decode.
+
+Only points carrying `"audio": true` have a file — 80 of the 760. The challenge
+must draw its rounds **only** from those, and the map should mark them as
+playable. If a fetch fails, degrade gracefully: show the clip's data with a
+short "audio unavailable" note, never a broken player or an error state. The
+app must stay fully usable if every fetch fails.
+
+The 80 clips are 10 complete source groups — one real recording plus its seven
+generated versions, drawn from all five source datasets in the test split. So
+the challenge can offer the *same underlying recording* as real and as seven
+different fakes, which is the sharpest version of the question.
 
 ### 2. The axis — the core explanation
 
@@ -117,9 +128,15 @@ type Point = {
   grp: "real" | "seen" | "unseen";
   p: number;                 // position on the real->seen-fake axis
   logit: number;             // model output, higher = more fake
-  sid: number;               // source recording id
+  sid: number;               // source recording id - clips sharing one are the
+                             // same recording through different generators
+  f: string;                 // filename, append to audioBaseUrl
+  audio?: true;              // present only when the file is fetchable
 };
 ```
+
+760 points; 80 have audio. The scores were computed on these exact files, so
+what a user hears is what the model was given.
 
 `ui-data.json` also carries `axisPosition`, `groupMeans`, `centroids2d`,
 `distanceToRealCentroid`, and `knn3wayAccuracy`. Use those rather than
@@ -164,7 +181,8 @@ Keyboard-navigable with visible focus rings; ARIA labels on all controls.
 - React + TypeScript, Recharts or D3 for the visuals, Tailwind if available.
 - Data from the attached JSON only. No backend, no fetching, no mock API.
 - No routing library; view switching is local state.
-- Renders correctly with no network and with no audio files present.
+- Renders correctly with no network; audio is the only thing that needs one,
+  and its absence must never break a view.
 - Transitions under 200ms.
 
 ## Do not
