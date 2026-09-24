@@ -157,7 +157,7 @@ where it can, and writes waveform, log-Mel and side-by-side comparison plots to
 | Level 2 | AASIST | `aasist` | trained + evaluated |
 | Level 3 | BEATs + AASIST | `beats_aasist` | trained + evaluated |
 | Novelty | CNN + BEATs feature fusion | `fusion` | trained + evaluated |
-| Novelty | Augmentation | — | not started |
+| Novelty | Augmentation | `--augment` | tried; widened the gap, see Results |
 
 Primary metric is **EER**, reported per generator, alongside F1 and AUC.
 
@@ -290,6 +290,68 @@ a real clip.
 positive in 2000/2000 resamples. Note that a small gap alone is not good news:
 `fusion` has a *negative* gap in one scoring only because it is weak everywhere.
 Read the gap alongside the seen EER, never on its own.
+
+### Augmentation did not help — and the reason is informative
+
+The remaining novelty was augmentation. It was tried, over three seeds, and it
+made things clearly worse:
+
+```bash
+python3 -m src.analysis.seed_sweep --seeds 1 2 3
+```
+
+| `logmel_cnn` | seen EER | unseen EER | gap |
+|---|---|---|---|
+| baseline | 0.0292 ±0.0124 | 0.0900 ±0.0153 | 0.0608 ±0.0074 |
+| augmented | 0.0539 ±0.0086 | 0.1900 ±0.0088 | **0.1361 ±0.0042** |
+
+The gap more than doubled — a shift of +0.0753, about 12.5× the seed-to-seed
+spread, so it is not noise.
+
+The augmentations in [`src/datasets/augment.py`](src/datasets/augment.py) were
+built on the premise that bandwidth, noise floor and level are *shortcuts* the
+detector leans on, and that randomising them would force it onto evidence that
+transfers. **That premise was wrong**, and it is testable without retraining —
+apply each transform to the test set and score the unchanged baseline model:
+
+| test-time transform | seen EER | change |
+|---|---|---|
+| none | 0.0242 | — |
+| `gain` | 0.0242 | +0.0000 |
+| `time_shift` | 0.0267 | +0.0025 |
+| `noise` | 0.0842 | +0.0600 |
+| `lowpass` | 0.2033 | **+0.1792** |
+
+Low-passing alone costs 8× the baseline error rate. The high-frequency spectral
+detail is not a shortcut, it is the evidence. Meanwhile `gain` changes nothing,
+because peak normalisation already removes it, and `time_shift` changes nothing,
+because global average pooling is already shift-invariant.
+
+So in this family the transforms either do nothing or destroy the signal, with
+no useful middle ground. An augmentation that could help here would have to
+leave fine spectral structure intact, which rules out most standard audio
+augmentation.
+
+### G07: the failure is unseen *and* audio-to-audio, not either alone
+
+Three models score about 0.51 on G07 — chance. Comparing each generator's median
+output against the spread of the real clips (0 sd = indistinguishable from real)
+shows it is a specific conjunction, not a general weakness:
+
+| model | G04 (ATA, seen) | G07 (ATA, unseen) | G05 (TTA, unseen) |
+|---|---|---|---|
+| `logmel_cnn` | 4.57 | 2.87 | 3.34 |
+| `aasist` | 2.69 | 2.39 | 1.05 |
+| `cnn` | 0.90 | **−0.05** | 2.58 |
+| `fusion` | 1.84 | **−0.05** | 1.73 |
+| `beats_aasist` | 1.56 | **−0.06** | 1.19 |
+
+Those three handle audio-to-audio when they trained on it (G04) and handle
+unseen generators when they are text-to-audio (G05). They fail only where the
+two coincide. Audio-to-audio generators start from the real recording and
+preserve its structure, so the only evidence left is fine synthesis detail —
+and what those models learned about it is specific to AudioLDM 1 and does not
+transfer to AudioLDM 2. `logmel_cnn` and `aasist` learned something that does.
 
 ### Waveform normalisation is part of the checkpoint
 

@@ -37,6 +37,9 @@ import torch.nn as nn
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.datasets.envsdd_dataset import make_loader          # noqa: E402
 from src.evaluation.metrics import all_metrics               # noqa: E402
+from src.datasets.augment import DEFAULT as AUG_DEFAULT      # noqa: E402
+from src.datasets.augment import TRANSFORMS as AUG_TRANSFORMS  # noqa: E402
+from src.datasets.augment import Augment                      # noqa: E402
 from src.models import (                                     # noqa: E402
     LEVEL,
     MODEL_NAMES,
@@ -107,6 +110,12 @@ def main():
     p.add_argument("--num-workers", type=int, default=4)
     p.add_argument("--device", default="auto")
     p.add_argument("--seed", type=int, default=1337)
+    p.add_argument("--augment", nargs="*", default=None,
+                   metavar="NAME",
+                   help="augment the TRAINING split; bare --augment enables all "
+                        f"of {sorted(AUG_TRANSFORMS)}")
+    p.add_argument("--augment-p", type=float, default=0.5,
+                   help="per-transform probability")
     p.add_argument("--no-normalize", dest="normalize", action="store_false",
                    help="feed raw waveforms instead of peak-normalised ones")
     p.set_defaults(normalize=True)
@@ -137,8 +146,16 @@ def main():
 
     # The registry says whether this model eats waveforms or spectrograms.
     mode = input_mode(a.model)
+    # Training split only. Validation and test must stay untouched, or the
+    # numbers stop being comparable with every other run.
+    augment = None
+    if a.augment is not None:
+        augment = Augment(a.augment or AUG_DEFAULT, p=a.augment_p, seed=a.seed)
+        print(f"augmenting train with {augment}")
+
     train_loader = make_loader("train", mode=mode, batch_size=a.batch_size,
-                               num_workers=a.num_workers, normalize=a.normalize)
+                               num_workers=a.num_workers, normalize=a.normalize,
+                               augment=augment)
     val_loader = make_loader("validation", mode=mode, batch_size=a.batch_size,
                              shuffle=False, num_workers=a.num_workers,
                              normalize=a.normalize)
@@ -203,6 +220,9 @@ def main():
                 "model_kwargs": model_kwargs,
                 "input_mode": mode,
                 "normalize": a.normalize,
+                "augment": a.augment if a.augment is None else list(
+                    a.augment or AUG_DEFAULT),
+                "augment_p": a.augment_p,
                 "epoch": ep, "val_eer": best_eer, "args": vars(a),
             }, a.out)
         elif ep - best_epoch >= a.patience:
