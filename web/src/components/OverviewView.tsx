@@ -14,6 +14,27 @@ interface OverviewViewProps {
 
 export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateToModel }) => {
   const { MODELS, CONFIDENCE, DATASET_STATS } = useResearchData();
+  const { PER_GENERATOR } = useResearchData();
+
+  // Every number quoted in the findings below is derived, never typed in: the
+  // prose and the leaderboard are the same data, so they cannot drift apart.
+  const best = MODELS.reduce((a, b) => (a.unseenEer <= b.unseenEer ? a : b));
+  const worstGap = MODELS.reduce((a, b) => (a.gap >= b.gap ? a : b));
+  const bestVsNext = (() => {
+    const others = MODELS.filter((m) => m.id !== best.id);
+    if (!others.length) return null;
+    const next = others.reduce((a, b) => (a.unseenEer <= b.unseenEer ? a : b));
+    return {model: next, ratio: next.unseenEer / best.unseenEer};
+  })();
+  const g07 = Object.entries(PER_GENERATOR)
+    .map(([id, gens]) => ({id, eer: gens.G07}))
+    .filter((r) => r.eer !== undefined);
+  const g07AtChance = g07.filter((r) => r.eer >= 0.45);
+  const g07Best = g07.length ? g07.reduce((a, b) => (a.eer <= b.eer ? a : b)) : null;
+  const labelOf = (id: string) => MODELS.find((m) => m.id === id)?.label ?? id;
+  const byId = (id: string) => MODELS.find((m) => m.id === id);
+  const fusion = byId('fusion');
+  const wavCnn = byId('cnn');
   // Sort models by unseen EER ascending (best to worst)
   const sortedLeaderboard = [...MODELS].sort((a, b) => a.unseenEer - b.unseenEer);
 
@@ -339,12 +360,18 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateToModel })
                 The simplest model wins by a wide margin.
               </h3>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                The log-Mel CNN reaches 0.0242 seen and 0.0833 unseen — roughly 5× better than AASIST and an order of magnitude better than the Level 3 and fusion models. The likely reason is data: 1,200 training source recordings is far too little for graph attention or a frozen self-supervised front-end to pay off.
+                The {best.label} reaches {formatEer(best.seenEer)} seen and{' '}
+                {formatEer(best.unseenEer)} unseen
+                {bestVsNext && <> — roughly {bestVsNext.ratio.toFixed(1)}× better on unseen
+                generators than {bestVsNext.model.label}, the next best</>}. The likely
+                reason is data: {DATASET_STATS.trainClips / 5} training source recordings is
+                far too little for graph attention or a frozen self-supervised front-end to
+                pay off.
               </p>
             </div>
             <div className="mt-4 pt-3 border-t text-xs font-mono flex justify-between" style={{ borderColor: 'var(--grid-line)', color: 'var(--text-muted)' }}>
-              <span>Log-Mel CNN EER: 0.0242 / 0.0833</span>
-              <span>Params: 240,737</span>
+              <span>{best.label} EER: {formatEer(best.seenEer)} / {formatEer(best.unseenEer)}</span>
+              <span>Params: {formatParams(best.params)}</span>
             </div>
           </article>
 
@@ -365,12 +392,26 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateToModel })
                 Fusion did not beat its own branches.
               </h3>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                It sits between the waveform CNN and BEATs+AASIST on seen generators and is worse than the waveform CNN on unseen ones. Combining two weak branches did not produce a strong one.
+                {fusion && wavCnn ? (
+                  <>
+                    It sits between its own two branches on seen generators and is{' '}
+                    {fusion.unseenEer > wavCnn.unseenEer ? 'worse than' : 'no better than'}{' '}
+                    the {wavCnn.label} on unseen ones ({formatEer(fusion.unseenEer)} against{' '}
+                    {formatEer(wavCnn.unseenEer)}). Combining two weak branches did not
+                    produce a strong one.
+                  </>
+                ) : (
+                  <>The fusion model has not been scored yet.</>
+                )}
               </p>
             </div>
             <div className="mt-4 pt-3 border-t text-xs font-mono flex justify-between" style={{ borderColor: 'var(--grid-line)', color: 'var(--text-muted)' }}>
-              <span>Fusion vs CNN Unseen: 0.2967 vs 0.2700</span>
-              <span>Params: 324,227</span>
+              <span>
+                {fusion && wavCnn
+                  ? `Fusion vs ${wavCnn.label} unseen: ${formatEer(fusion.unseenEer)} vs ${formatEer(wavCnn.unseenEer)}`
+                  : '—'}
+              </span>
+              <span>{fusion ? `Params: ${formatParams(fusion.params)}` : '—'}</span>
             </div>
           </article>
 
@@ -391,11 +432,22 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateToModel })
                 Three models are at chance on G07.
               </h3>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                The waveform CNN, fusion and BEATs+AASIST all score about 0.51 on G07 — a coin flip. AASIST manages 0.1133 and the log-Mel CNN 0.0833 on the same clips, so the information is there and those three simply fail to use it.
+                {g07AtChance.length > 0 && g07Best && (
+                  <>
+                    {g07AtChance.map((r) => labelOf(r.id)).join(', ')} score around{' '}
+                    {formatEer(g07AtChance[0].eer)} on G07 — a coin flip.{' '}
+                    {labelOf(g07Best.id)} manages {formatEer(g07Best.eer)} on the same clips,
+                    so the information is there and those models simply fail to use it.
+                  </>
+                )}
               </p>
             </div>
             <div className="mt-4 pt-3 border-t text-xs font-mono flex justify-between" style={{ borderColor: 'var(--grid-line)', color: 'var(--text-muted)' }}>
-              <span>G07 EER: ~0.51 vs 0.0833</span>
+              <span>
+                G07 EER: {g07AtChance.length && g07Best
+                  ? `~${formatEer(g07AtChance[0].eer)} vs ${formatEer(g07Best.eer)}`
+                  : '—'}
+              </span>
               <span>Mode: Audio-to-Audio</span>
             </div>
           </article>

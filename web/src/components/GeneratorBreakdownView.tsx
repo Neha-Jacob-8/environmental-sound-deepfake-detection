@@ -39,9 +39,14 @@ export const GeneratorBreakdownView: React.FC<GeneratorBreakdownViewProps> = ({ 
   const seenGenerators = GENERATORS.filter(g => g.seen);
   const unseenGenerators = GENERATORS.filter(g => !g.seen);
 
-  // EER range for heatmap: min ~0.01, max ~0.5133
-  const minEer = 0.0100;
-  const maxEer = 0.5200;
+  // Colour-scale bounds come from the data on screen. Pinning them to today's
+  // numbers would silently mis-colour the matrix, and mislabel the legend, the
+  // first time anything is retrained.
+  const allEers = Object.values(PER_GENERATOR).flatMap((row) => Object.values(row));
+  const minEer = allEers.length ? Math.min(...allEers) : 0;
+  const maxEer = allEers.length ? Math.max(...allEers) : 1;
+  // EER is a rate where 0.5 is a coin flip, whatever the data says.
+  const CHANCE = 0.5;
 
   // Single-hue sequential ramp based on #2a78d6 (light = low = good, dark = high = worse)
   const getCellStyles = (eer: number) => {
@@ -354,7 +359,7 @@ export const GeneratorBreakdownView: React.FC<GeneratorBreakdownViewProps> = ({ 
                                       color: '#ffffff' 
                                     }}
                                   >
-                                    chance (~0.51)
+                                    chance (~{formatEer(CHANCE)})
                                   </span>
                                 )}
                               </div>
@@ -390,7 +395,7 @@ export const GeneratorBreakdownView: React.FC<GeneratorBreakdownViewProps> = ({ 
                         : 'linear-gradient(to right, rgba(42, 120, 214, 0.06), rgba(42, 120, 214, 0.90))'
                     }}
                   />
-                  <span className="text-[11px]">0.5133 (chance)</span>
+                  <span className="text-[11px]">{formatEer(maxEer)}{maxEer >= CHANCE ? " (chance)" : ""}</span>
                 </div>
               </div>
 

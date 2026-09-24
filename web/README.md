@@ -44,6 +44,28 @@ silently the moment anything was retrained.
 `src/data/researchData.ts` still exists but now holds only the palette and the
 formatters — design decisions, with nothing to go stale against.
 
+## Verifying provenance
+
+The dashboard is only trustworthy if its numbers trace back to the files the
+training runs wrote. That is a command, not a promise:
+
+```bash
+python3 -m src.api.verify        # with the API running
+```
+
+It reads `results/tables/` and the manifest directly, reads the API, and
+compares value by value — 91 of them — exiting non-zero on any mismatch.
+
+The built bundle contains no measured values at all. Confirm it yourself:
+
+```bash
+cd web && npm run build
+grep -oE "0\.0242|0\.0833|240737" dist/assets/*.js   # no matches
+```
+
+Every figure on the page, including the ones quoted inside the findings prose,
+is derived from the API response at render time.
+
 ## Endpoints
 
 | | |

@@ -315,6 +315,12 @@ python3 -m src.api.main        # terminal 1: http://127.0.0.1:8000
 cd web && npm install && npm run dev   # terminal 2: http://localhost:5173
 ```
 
+Check that the API is serving the real tables and nothing else:
+
+```bash
+python3 -m src.api.verify      # compares 91 values against results/tables/
+```
+
 `POST /api/predict` runs the trained detector on an uploaded clip and returns
 its probability, its position on the real→seen-fake axis and its coordinates in
 the embedding map. See [`web/README.md`](web/README.md) for the full endpoint
