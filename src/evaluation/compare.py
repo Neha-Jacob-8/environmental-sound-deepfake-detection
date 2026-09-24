@@ -61,7 +61,8 @@ def main():
         name = ck["model"]
         mode = ck.get("input_mode") or input_mode(name)
         loader = make_loader(a.split, mode=mode, batch_size=a.batch_size,
-                             shuffle=False, num_workers=a.num_workers)
+                             shuffle=False, num_workers=a.num_workers,
+                             normalize=ck["normalize"])
         scores, labels, _ = score_loader(model, loader, device)
         gens = loader.dataset.df.generator.to_numpy()
 
@@ -73,6 +74,7 @@ def main():
             "model": name,
             "level": LEVEL.get(name, "?"),
             "input": mode,
+            "normalized": ck["normalize"],
             "params": sum(q.numel() for q in model.parameters() if q.requires_grad),
             "val_eer": ck.get("val_eer", float("nan")),
             "seen_eer": summary["seen"]["eer"],
@@ -93,7 +95,7 @@ def main():
 
     df = pd.DataFrame(rows).sort_values("gap").reset_index(drop=True)
 
-    cols = ["model", "level", "input", "params", "val_eer",
+    cols = ["model", "level", "input", "normalized", "params", "val_eer",
             "seen_eer", "unseen_eer", "gap"]
     print(f"\n=== test split, sorted by generalisation gap (smaller is better) ===")
     print(df[cols].to_string(

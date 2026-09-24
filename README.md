@@ -153,10 +153,10 @@ where it can, and writes waveform, log-Mel and side-by-side comparison plots to
 |-------|-------|-----------|--------|
 | Preprocessing | — | — | done |
 | Level 1 | CNN on log-Mel spectrograms | `logmel_cnn` | trained + evaluated |
-| Level 1 | CNN on raw waveform | `cnn` | implemented, not yet trained |
-| Level 2 | AASIST | `aasist` | implemented, not yet trained |
-| Level 3 | BEATs + AASIST | `beats_aasist` | implemented, not yet trained |
-| Novelty | CNN + BEATs feature fusion | `fusion` | implemented, not yet trained |
+| Level 1 | CNN on raw waveform | `cnn` | trained + evaluated |
+| Level 2 | AASIST | `aasist` | trained + evaluated |
+| Level 3 | BEATs + AASIST | `beats_aasist` | trained + evaluated |
+| Novelty | CNN + BEATs feature fusion | `fusion` | trained + evaluated |
 | Novelty | Augmentation | — | not started |
 
 Primary metric is **EER**, reported per generator, alongside F1 and AUC.
@@ -234,53 +234,75 @@ to CPU for that one op, keeping results identical on every backend.
 
 ## Results
 
-### Level 1 — log-Mel CNN (240,737 params)
+All five models scored on the same 2,400-clip test split, through the same
+`src/evaluation/compare.py`, so every number below is computed identically:
 
 ```bash
-python3 -m src.training.train           # ~3 min on MPS, early-stops around epoch 31
-python3 -m src.evaluation.evaluate      # per-generator EER on the test split
-python3 -m src.evaluation.report        # accuracy/precision/recall/F1 for all splits
-python3 -m src.evaluation.bootstrap_ci  # group-level 95% CIs
+./run_training.sh                    # train everything
+python3 -m src.evaluation.compare    # the table below
 ```
 
-Or as a notebook: [`notebooks/training.ipynb`](notebooks/training.ipynb) runs the
-same code with training curves, per-generator bars, score distributions, ROC,
-confusion matrix and the bootstrap, all inline.
+| `--model` | Level | Input | Params | seen EER | unseen EER | gap |
+|---|---|---|---|---|---|---|
+| `cnn` | 1 | waveform | 19,073 | 0.2133 | 0.2700 | +0.0567 |
+| **`logmel_cnn`** | 1 | log-Mel | 240,737 | **0.0242** | **0.0833** | +0.0592 |
+| `fusion` | novelty | waveform | 324,227 | 0.2033 | 0.2967 | +0.0933 |
+| `beats_aasist` | 3 | waveform | 263,937 | 0.2400 | 0.3433 | +0.1033 |
+| `aasist` | 2 | waveform | 269,427 | 0.1133 | 0.2333 | +0.1200 |
 
-Trained on G01–G04 over 1,200 source groups.
+Per generator:
 
-| Split | Accuracy | Bal. acc | Precision | Recall | F1 | AUC | EER |
+| | G01 | G02 | G03 | G04 | G05 | G06 | G07 |
 |---|---|---|---|---|---|---|---|
-| train | 0.9990 | 0.9991 | 0.9998 | 0.9990 | 0.9994 | 1.0000 | 0.0008 |
-| validation | 0.9987 | 0.9992 | 1.0000 | 0.9983 | 0.9992 | 1.0000 | 0.0017 |
-| test | 0.9300 | 0.9286 | 0.9889 | 0.9305 | 0.9588 | 0.9805 | 0.0729 |
+| `logmel_cnn` | 0.0100 | 0.0133 | 0.0367 | 0.0300 | 0.0967 | 0.0667 | 0.0833 |
+| `aasist` | 0.1000 | 0.1033 | 0.1733 | 0.1033 | 0.2867 | 0.2367 | 0.1133 |
+| `cnn` | 0.1767 | 0.1900 | 0.1800 | 0.2933 | 0.1333 | 0.1633 | **0.5100** |
+| `fusion` | 0.1767 | 0.2233 | 0.2100 | 0.1933 | 0.1767 | 0.2033 | **0.5133** |
+| `beats_aasist` | 0.2200 | 0.2767 | 0.2467 | 0.2267 | 0.3100 | 0.2700 | **0.5100** |
 
-Accuracy is not a useful number here: fakes outnumber reals 7:1 on test, so
-answering "fake" every time already scores 87.5%. EER is the reported metric.
+Levels 2, 3 and fusion were trained on a Colab T4; see
+[`notebooks/colab_full_run.ipynb`](notebooks/colab_full_run.ipynb) for that run.
 
-Pooled over the test split, with 95% CIs bootstrapped over the 300 test source
-groups (whole groups resampled — clips within a group are correlated):
+### Four things these numbers say
 
-| | EER | 95% CI |
-|---|---|---|
-| seen (G01–G04) | 0.0242 | [0.0167, 0.0333] |
-| unseen (G05–G07) | 0.0833 | [0.0633, 0.1033] |
-| **generalisation gap** | **+0.0592** | [+0.0411, +0.0767] |
+**The simplest model wins, by a wide margin.** `logmel_cnn` reaches 0.0242 seen
+and 0.0833 unseen, roughly 5× better than AASIST and an order of magnitude
+better than the Level 3 and fusion models. The likely reason is data: 1,200
+training source recordings is far too little for a graph-attention network or a
+frozen SSL front-end to pay off, while a small log-Mel CNN with per-mel-bin
+standardisation fits that budget comfortably. Scale the training split before
+concluding anything about the architectures themselves.
 
-The gap is positive in 2000/2000 bootstrap resamples.
+**Fusion did not beat its own branches.** It sits between `cnn` (0.2133/0.2700)
+and `beats_aasist` (0.2400/0.3433) on seen generators and is worse than `cnn` on
+unseen ones. Combining two weak branches did not produce a strong one — which is
+a result worth reporting, not a bug to hide.
 
-**Run-to-run variation.** Two runs of this identical configuration gave gaps of
-+0.0608 and +0.0592 — stable. Individual generators are far noisier at 300 test
-groups (G06 moved 0.0933 → 0.0667 between the two), so per-generator EERs should
-not be compared at this scale without CIs. Enlarging the test split is the cheap
-fix; see the note on scaling below.
+**Three models are at chance on G07.** `cnn`, `fusion` and `beats_aasist` all
+score ~0.51 on G07 (AudioLDM 2 in audio-to-audio mode) — literally coin-flip.
+`aasist` manages 0.1133 and `logmel_cnn` 0.0833 on the same clips, so the
+information is there and those three simply fail to use it. G07 preserves the
+source recording's structure, so it is the unseen generator that most resembles
+a real clip.
 
-**What the failure is not.** Train and validation accuracy sit within 0.03pp of
-each other, so this is not classic overfitting and regularisation has no gap to
-close. The model breaks along a different axis — across *generators* — which the
-validation split cannot see, because it contains only G01–G04. Precision holds on
-test while recall falls on the unseen generators: roughly one unseen fake in seven
-is passed as real.
+**The gap is real but not the whole story.** For `aasist`, bootstrapping over the
+300 test source groups gives a gap of +0.1200, 95% CI [+0.0900, +0.1467],
+positive in 2000/2000 resamples. Note that a small gap alone is not good news:
+`fusion` has a *negative* gap in one scoring only because it is weak everywhere.
+Read the gap alongside the seen EER, never on its own.
+
+### Waveform normalisation is part of the checkpoint
+
+The Level 2/3/fusion models were trained on **raw** waveforms; `logmel_cnn` was
+trained on peak-normalised ones. This is not a free choice at evaluation time. A
+model trained on raw audio and scored on peak-normalised audio sees a different
+input distribution and collapses — AASIST scores 0.5067 on G01 that way, against
+0.1000 scored correctly, i.e. chance instead of its real number.
+
+Checkpoints therefore record the setting, and every evaluation script reads it
+back, so a checkpoint is always scored the way it was trained. `cnn` is the one
+model immune to the difference, because per-clip log-Mel standardisation cancels
+a scalar gain exactly.
 
 ## Credits
 
@@ -288,7 +310,10 @@ Preprocessing was built jointly. The detection models — AASIST, the
 graph-attention back-end, BEATs+AASIST, the waveform CNN and the fusion model —
 together with `audio_report.py`, `visualize.py` and the Colab pipeline, are the
 work of a project partner, merged in here and adapted to this repository's
-Dataset and training interfaces.
+Dataset and training interfaces. The Level 2, 3 and fusion results were produced
+by her Colab GPU run, recorded in `notebooks/colab_full_run.ipynb`; they are
+rescored here through this repository's metrics so all five models are directly
+comparable.
 
 ## References
 

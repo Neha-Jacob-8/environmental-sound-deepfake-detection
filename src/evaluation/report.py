@@ -77,7 +77,7 @@ def main():
     data = {}
     for split in ("train", "validation", "test"):
         ld = make_loader(split, mode=mode, batch_size=64, shuffle=False,
-                         num_workers=a.num_workers)
+                         num_workers=a.num_workers, normalize=ck["normalize"])
         s, y, _ = score_loader(model, ld, dev)
         data[split] = (y, s, ld.dataset.df.generator.to_numpy())
 

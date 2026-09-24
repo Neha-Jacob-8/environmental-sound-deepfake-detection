@@ -93,6 +93,27 @@ def load_checkpoint(path, device="cpu"):
     works on any of the five without being told which one it is looking at.
     """
     ck = torch.load(path, map_location=device, weights_only=False)
+
+    # Two checkpoint dialects exist in this project's history: this repo writes
+    # {"state_dict", "model", "val_eer"}, while the Colab runs that produced the
+    # Level 2/3/fusion results wrote {"model_state", "model_name",
+    # "best_eer_so_far"}. Accept both so old result checkpoints stay loadable.
+    if "state_dict" not in ck and "model_state" in ck:
+        ck["state_dict"] = ck["model_state"]
+    if "model" not in ck and "model_name" in ck:
+        ck["model"] = ck["model_name"]
+    if "val_eer" not in ck and "best_eer_so_far" in ck:
+        ck["val_eer"] = ck["best_eer_so_far"]
+
+    # Whether the waveform was peak-normalised at training time. This is not a
+    # free choice at evaluation: a model trained on raw audio and scored on
+    # peak-normalised audio sees a different input distribution and collapses.
+    # AASIST scored EER 0.51 on G01 that way, against 0.10 done correctly -
+    # chance instead of its real number. The Colab checkpoints predate the flag
+    # and were trained on un-normalised audio, so that is what they get.
+    if "normalize" not in ck:
+        ck["normalize"] = "model_state" not in ck
+
     name = ck.get("model", "logmel_cnn")
     name = _LEGACY_NAMES.get(name, name)
 

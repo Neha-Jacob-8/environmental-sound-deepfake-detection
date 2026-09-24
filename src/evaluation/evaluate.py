@@ -60,7 +60,8 @@ def main():
 
     mode = ck.get("input_mode") or input_mode(ck["model"])
     loader = make_loader(a.split, mode=mode, batch_size=a.batch_size,
-                         shuffle=False, num_workers=a.num_workers)
+                         shuffle=False, num_workers=a.num_workers,
+                         normalize=ck["normalize"])
     print(loader.dataset.describe())
 
     scores, labels, _ = score_loader(model, loader, device)

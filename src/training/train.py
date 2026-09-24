@@ -107,6 +107,9 @@ def main():
     p.add_argument("--num-workers", type=int, default=4)
     p.add_argument("--device", default="auto")
     p.add_argument("--seed", type=int, default=1337)
+    p.add_argument("--no-normalize", dest="normalize", action="store_false",
+                   help="feed raw waveforms instead of peak-normalised ones")
+    p.set_defaults(normalize=True)
     p.add_argument("--dropout", type=float, default=None,
                    help="default depends on the model")
     p.add_argument("--head-dropout", type=float, default=0.3,
@@ -135,9 +138,10 @@ def main():
     # The registry says whether this model eats waveforms or spectrograms.
     mode = input_mode(a.model)
     train_loader = make_loader("train", mode=mode, batch_size=a.batch_size,
-                               num_workers=a.num_workers)
+                               num_workers=a.num_workers, normalize=a.normalize)
     val_loader = make_loader("validation", mode=mode, batch_size=a.batch_size,
-                             shuffle=False, num_workers=a.num_workers)
+                             shuffle=False, num_workers=a.num_workers,
+                             normalize=a.normalize)
 
     print(f"model={a.model} (level {LEVEL[a.model]}), input mode={mode}")
     print(train_loader.dataset.describe())
@@ -198,6 +202,7 @@ def main():
                 "model": a.model,
                 "model_kwargs": model_kwargs,
                 "input_mode": mode,
+                "normalize": a.normalize,
                 "epoch": ep, "val_eer": best_eer, "args": vars(a),
             }, a.out)
         elif ep - best_epoch >= a.patience:

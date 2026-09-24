@@ -39,7 +39,7 @@ def main():
     print(f"model={ck['model']}, input mode={mode}")
 
     loader = make_loader("test", mode=mode, batch_size=64, shuffle=False,
-                         num_workers=a.num_workers)
+                         num_workers=a.num_workers, normalize=ck["normalize"])
     scores, labels, _ = score_loader(model, loader, dev)
     df = loader.dataset.df
     gens, sid = df.generator.to_numpy(), df.source_id.to_numpy()

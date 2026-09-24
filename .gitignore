@@ -39,3 +39,5 @@ env/
 
 # Her original hand-off archive - its contents are merged into the repo
 speech-project.zip
+speech-project-results/
+speechh.ipynb

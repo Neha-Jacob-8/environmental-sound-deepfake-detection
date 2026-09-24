@@ -1,0 +1,19 @@
+{
+  "overall": {
+    "eer": 0.18785714285714283,
+    "eer_threshold": 0.8478135466575623,
+    "accuracy": 0.8875,
+    "f1": 0.9342105263157895,
+    "precision": 0.9565868263473054,
+    "recall": 0.9128571428571428,
+    "roc_auc": 0.9086301587301587,
+    "n_clips": 2400
+  },
+  "seen_vs_unseen": {
+    "seen_mean_eer": 0.12000000000000002,
+    "unseen_mean_eer": 0.21277777777777776,
+    "n_seen_generators": 4,
+    "n_unseen_generators": 3
+  },
+  "trained_epoch": 29
+}
