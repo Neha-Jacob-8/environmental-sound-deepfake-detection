@@ -4,15 +4,12 @@
  */
 
 import React, { useState } from 'react';
-import {
-  MODELS,
-  GENERATORS,
-  PER_GENERATOR,
-  formatEer,
-} from '../data/researchData';
+import { formatEer } from '../data/researchData';
+import { useResearchData } from '../data/DataContext';
 import { Info, Sparkles, Filter } from 'lucide-react';
 
 export const GeneratorsView: React.FC = () => {
+  const { MODELS, GENERATORS, PER_GENERATOR } = useResearchData();
   const [filterMode, setFilterMode] = useState<'all' | 'seen' | 'unseen'>('all');
 
   const filteredGenerators = GENERATORS.filter(gen => {

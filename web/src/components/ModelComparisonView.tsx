@@ -4,13 +4,8 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import {
-  MODELS,
-  CONFIDENCE,
-  ModelInfo,
-  formatEer,
-  formatParams,
-} from '../data/researchData';
+import { ModelInfo, formatEer, formatParams } from '../data/researchData';
+import { useResearchData } from '../data/DataContext';
 import {
   ResponsiveContainer,
   BarChart,
@@ -37,6 +32,7 @@ export const ModelComparisonView: React.FC<ModelComparisonViewProps> = ({
   selectedModelId: externalSelectedId,
   onSelectModel,
 }) => {
+  const { MODELS, CONFIDENCE } = useResearchData();
   const [internalSelectedId, setInternalSelectedId] = useState<string | null>(null);
   const selectedModelId = externalSelectedId !== undefined ? externalSelectedId : internalSelectedId;
 

@@ -9,4 +9,8 @@ export default defineConfig({
   // the same build also works when opened from any other path.
   base: './',
   resolve: {alias: {'@': path.resolve(__dirname, '.')}},
+  server: {
+    // Same-origin in the browser, so no CORS and no base URL to configure.
+    proxy: {'/api': {target: 'http://127.0.0.1:8000', changeOrigin: true}},
+  },
 });

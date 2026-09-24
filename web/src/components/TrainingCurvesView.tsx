@@ -4,11 +4,8 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import {
-  MODELS,
-  CURVES,
-  formatEer,
-} from '../data/researchData';
+import { formatEer } from '../data/researchData';
+import { useResearchData } from '../data/DataContext';
 import {
   ResponsiveContainer,
   LineChart,
@@ -22,6 +19,7 @@ import {
 import { TrendingDown, Activity, Table as TableIcon } from 'lucide-react';
 
 export const TrainingCurvesView: React.FC = () => {
+  const { MODELS, CURVES } = useResearchData();
   const [metric, setMetric] = useState<'eer' | 'loss'>('eer');
   const [showTable, setShowTable] = useState(false);
 

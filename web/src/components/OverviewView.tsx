@@ -4,13 +4,8 @@
  */
 
 import React from 'react';
-import {
-  MODELS,
-  CONFIDENCE,
-  DATASET_STATS,
-  formatEer,
-  formatParams,
-} from '../data/researchData';
+import { formatEer, formatParams } from '../data/researchData';
+import { useResearchData } from '../data/DataContext';
 import { AlertCircle, ArrowUpRight, CheckCircle2, ShieldAlert, Cpu } from 'lucide-react';
 
 interface OverviewViewProps {
@@ -18,6 +13,7 @@ interface OverviewViewProps {
 }
 
 export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigateToModel }) => {
+  const { MODELS, CONFIDENCE, DATASET_STATS } = useResearchData();
   // Sort models by unseen EER ascending (best to worst)
   const sortedLeaderboard = [...MODELS].sort((a, b) => a.unseenEer - b.unseenEer);
 

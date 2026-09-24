@@ -306,19 +306,19 @@ a scalar gain exactly.
 
 ## Dashboard
 
-An interactive view of these results lives in [`web/`](web/) — leaderboard,
-per-generator matrix, training curves and generator profiles.
+An interactive view of these results lives in [`web/`](web/). It is a frontend
+plus a small API; the API reads `results/tables/` per request, so the site never
+disagrees with the repository and retraining needs no rebuild.
 
 ```bash
-cd web && npm install && npm run dev
+python3 -m src.api.main        # terminal 1: http://127.0.0.1:8000
+cd web && npm install && npm run dev   # terminal 2: http://localhost:5173
 ```
 
-Its numbers are generated from `results/tables/`, not hand-maintained:
-
-```bash
-python3 -m src.analysis.export_web_data          # rewrite after any training run
-python3 -m src.analysis.export_web_data --check  # fail if stale
-```
+`POST /api/predict` runs the trained detector on an uploaded clip and returns
+its probability, its position on the real→seen-fake axis and its coordinates in
+the embedding map. See [`web/README.md`](web/README.md) for the full endpoint
+list.
 
 ## Credits
 

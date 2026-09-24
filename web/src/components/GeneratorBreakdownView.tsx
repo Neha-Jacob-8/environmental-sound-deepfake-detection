@@ -4,12 +4,8 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import {
-  MODELS,
-  GENERATORS,
-  PER_GENERATOR,
-  formatEer,
-} from '../data/researchData';
+import { formatEer } from '../data/researchData';
+import { useResearchData } from '../data/DataContext';
 import {
   ResponsiveContainer,
   BarChart,
@@ -27,6 +23,7 @@ interface GeneratorBreakdownViewProps {
 }
 
 export const GeneratorBreakdownView: React.FC<GeneratorBreakdownViewProps> = ({ isDark }) => {
+  const { MODELS, GENERATORS, PER_GENERATOR } = useResearchData();
   const [viewMode, setViewMode] = useState<'matrix' | 'bars' | 'table'>('matrix');
   const [hoveredCell, setHoveredCell] = useState<{
     modelId: string;
