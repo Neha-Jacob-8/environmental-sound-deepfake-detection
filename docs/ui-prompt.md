@@ -1,15 +1,63 @@
-Build an interactive web app that explains **why AI audio detectors fail on
-generators they have never seen** — using real measurements from a trained
-detector, not a mock-up. React + TypeScript, single page, production quality.
+Build an interactive web app that presents a final-year research project on
+audio deepfake detection — stating its question, answering it, and explaining
+the answer using real measurements from the trained models. React + TypeScript,
+single page, production quality.
 
-Attach `ui-data.json` (720 real data points) alongside this prompt and import it.
+Attach `ui-data.json` (760 real data points) alongside this prompt and import it.
 
-## The finding the whole app exists to communicate
+## The project — use this exact framing, do not invent your own
 
-A CNN was trained to tell real environmental sound from AI-generated sound,
-using four generators (G01–G04). It was then tested on three it had never seen
-(G05–G07). It got worse — error rate roughly tripled. The interesting part is
-*why*, and the model's own 128-dimensional feature space answers it.
+**Title:** Robust Environmental Sound Deepfake Detection Against Unseen Audio
+Generators
+
+**Research question:** Can combining complementary acoustic representations
+improve robustness of environmental sound deepfake detection against unseen
+audio generators?
+
+Built on the EnvSDD dataset (Interspeech 2025, CC BY 4.0), following the ESDD
+2026 challenge protocol. Detectors are trained on generators **G01–G04** and
+evaluated on **G05–G07**, which appear only at test time. The primary metric is
+**EER** — equal error rate, lower is better — reported per generator rather than
+pooled.
+
+Working subset: 9,900 clips, each 16 kHz mono and exactly 4.000 s.
+Train 6,000 / validation 1,500 / test 2,400.
+
+### The generators
+
+| ID | Generator | Conditioning | Status |
+|----|-----------|--------------|--------|
+| G01 | AudioLDM | text-to-audio | seen in training |
+| G02 | AudioLDM 2 | text-to-audio | seen in training |
+| G03 | AudioGen | text-to-audio | seen in training |
+| G04 | AudioLDM | audio-to-audio | seen in training |
+| G05 | AudioLCM | text-to-audio | **unseen architecture** |
+| G06 | TangoFlux | text-to-audio | **unseen architecture** |
+| G07 | AudioLDM 2 | audio-to-audio | **unseen conditioning only** |
+
+A distinction the app should make, because it is easy to get wrong: only G05 and
+G06 are architecturally new. G07 is the *same model as G02* in a different
+conditioning mode, so it tests an unseen mode rather than an unseen
+architecture. Audio-to-audio generators (G04, G07) start from the real recording
+and preserve its structure, which is why they resemble real clips more closely.
+
+## The answer, in two parts
+
+### Part 1 — the honest answer to the research question: no
+
+Feature fusion did not improve robustness. Combining the CNN and the
+BEATs+AASIST branches produced a model that sits *between* its own two branches
+on seen generators and is **worse than the plain waveform CNN** on unseen ones.
+Two weak branches did not make a strong one.
+
+The app must present this plainly. A negative result honestly reported is the
+finding, not a failure to hide behind a neutral dashboard.
+
+### Part 2 — why generalisation fails, from the model's own feature space
+
+The best detector (a log-Mel CNN) reaches 0.0242 EER on seen generators and
+0.0833 on unseen ones — roughly triple the error. Its 128-dimensional penultimate
+layer shows where that comes from.
 
 Take the axis running from the centroid of real clips to the centroid of
 seen-fake clips. That axis is, in effect, what the detector learned "fake" means.
@@ -33,14 +81,46 @@ decision boundary reliably. The detector did not learn "fake"; it learned "far
 from real in this one specific direction", and unfamiliar generators only travel
 part of the way. That single sentence is the thesis of the app.
 
-This is measured in the full 128-d space, not read off a 2-D plot, and the seen
-and unseen interquartile ranges do not overlap. A 2-D t-SNE of the same space
-separates the three groups at 83.9% accuracy under 5-fold kNN (33.3% is chance),
-and the layout is stable across random seeds.
+Measured in the full 128-d space, not read off a 2-D plot, and the seen and
+unseen interquartile ranges do not overlap. A 2-D t-SNE of the same space
+separates the three groups at 83.9% under 5-fold kNN (33.3% is chance), stable
+across random seeds.
+
+## Naming and chrome — do not improvise these
+
+The app is titled **"Robust Environmental Sound Deepfake Detection Against
+Unseen Audio Generators"**, shortened in the header to **"Unseen-Generator
+Deepfake Detection"** if space demands. A single line under it states the
+research question verbatim.
+
+Do **not** invent breadcrumb trails, section taxonomies, lab names, author
+names, institution names, dates, logos, or category labels such as "Research
+Brief", "Benchmark" or "Acoustic Forensics". Nothing of the sort is given here
+because none of it should appear. The nav contains exactly the five views below
+and nothing else.
 
 ## Screens
 
-Four views in a persistent left nav (top bar under 900px). Open on view 1.
+Five views in a persistent left nav (top bar under 900px). Open on view 0.
+
+### 0. The question — the landing view
+
+State the problem in the researcher's own terms, in this order:
+
+1. The title and the research question, verbatim.
+2. One short paragraph of setup: detectors are trained on four generators and
+   tested on three they have never seen; the metric is EER; the dataset is
+   EnvSDD under the ESDD 2026 protocol.
+3. The answer, stated immediately rather than withheld: **fusion did not
+   improve robustness**, and the best detector still roughly triples its error
+   rate on unseen generators. Put the two numbers — 0.0242 seen, 0.0833
+   unseen — in large type.
+4. Three links into the views that substantiate it: "hear the problem
+   yourself" (view 1), "see why it happens" (view 2), "see what it costs"
+   (view 4).
+
+Resist the urge to build a marketing hero. This is the abstract of a paper,
+rendered well.
 
 ### 1. "Can you tell?" — the hook
 
@@ -98,9 +178,10 @@ if available. Show the three group centroids as distinct markers.
 Be honest in a caption: t-SNE distances are not metric — this is a view of the
 structure, and the numbers in view 2 are the actual evidence.
 
-### 4. What it costs — results
+### 4. What it costs — results, and the answer to the question
 
-Only now show the error rates, framed as the consequence of views 2 and 3.
+Show the error rates, framed as the consequence of views 2 and 3, and as the
+evidence for the negative answer stated on the landing view.
 
 | Model | seen EER | unseen EER | gap |
 |---|---|---|---|
@@ -114,10 +195,24 @@ Per-generator EER for the Log-Mel CNN, the model the embeddings come from:
 G01 0.0100, G02 0.0133, G03 0.0367, G04 0.0300, G05 0.0967, G06 0.0667,
 G07 0.0833.
 
-Two caveats to state plainly rather than bury: a small gap is not automatically
-good — Feature Fusion's gap looks competitive only because it is weak
-everywhere, so the gap must be read next to the seen EER. And EER is an error
-rate, never "accuracy".
+Lay the fusion row against its own two branches explicitly — a small grouped
+comparison of Waveform CNN, BEATs + AASIST, and Feature Fusion — so a reader can
+see for themselves that the combination did not beat its parts. That comparison
+is the direct answer to the research question and deserves its own labelled
+block, not a row buried in a five-model table.
+
+Three caveats to state plainly rather than bury:
+
+- A small gap is not automatically good. Feature Fusion's gap looks competitive
+  only because the model is weak everywhere, so the gap must always be read next
+  to the seen EER.
+- EER is an error rate, never "accuracy".
+- G07 behaves inconsistently across models and the app should say so rather than
+  smooth it over. For the Log-Mel CNN it is the *easiest* of the three unseen
+  generators (0.0833), which fits it being an unseen conditioning mode of an
+  architecture already seen. But the Waveform CNN, Feature Fusion and
+  BEATs + AASIST all score about 0.51 on it — chance. The information is
+  evidently there, and those three models fail to use it.
 
 ## Data shape
 
@@ -194,3 +289,11 @@ Keyboard-navigable with visible focus rings; ARIA labels on all controls.
 - Do not present t-SNE distances as real distances.
 - Do not add login, user accounts, settings pages or PDF export.
 - Do not round the axis positions or EERs beyond the precision given.
+- Do not invent branding, breadcrumbs, author or institution names, dates,
+  version numbers, or section categories. If a label is not in this prompt, it
+  does not belong in the app.
+- Do not soften the negative result. Fusion did not improve robustness, and the
+  app says so in plain words on the landing view.
+- Do not describe G05, G06 and G07 as equivalent. G07 is an unseen conditioning
+  mode of an architecture the model already saw; only G05 and G06 are new
+  architectures.
