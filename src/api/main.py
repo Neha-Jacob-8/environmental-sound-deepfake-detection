@@ -129,19 +129,31 @@ def _load_model():
 
     ckpt = ROOT / "results" / "models" / "logmel_cnn_best.pt"
     if not ckpt.exists():
-        raise HTTPException(503, "no trained detector - run src.training.train")
+        raise HTTPException(
+            503,
+            "No trained detector. Run: python -m src.training.train "
+            "--model logmel_cnn")
     cnn, _ = load_checkpoint(ckpt, "cpu")
     mean, std = logmel_stats()
 
-    d = np.load(ROOT / "results" / "tables" / "embeddings.npz", allow_pickle=True)
-    emb, groups = d["emb"].astype(np.float64), d["group"]
-    real_c = emb[groups == "real"].mean(0)
-    axis = emb[groups == "seen"].mean(0) - real_c
-    axis /= np.linalg.norm(axis)
-    scale = float((emb[groups == "seen"].mean(0) - real_c) @ axis)
-
-    _model = ExportableDetector(cnn, mean, std, real_c, axis, scale).eval()
-    _lda = (d["lda_mean"], d["lda_scalings"]) if "lda_mean" in d.files else None
+    # The axis and LDA geometry are derived from the embedding dump, which is
+    # gitignored because it is regenerable. Without it the detector still gives
+    # a verdict - it just cannot place the clip in the feature space, so say so
+    # rather than failing the whole request.
+    emb_path = ROOT / "results" / "tables" / "embeddings.npz"
+    if emb_path.exists():
+        d = np.load(emb_path, allow_pickle=True)
+        emb, groups = d["emb"].astype(np.float64), d["group"]
+        real_c = emb[groups == "real"].mean(0)
+        seen_c = emb[groups == "seen"].mean(0)
+        axis = seen_c - real_c
+        axis /= np.linalg.norm(axis)
+        scale = float((seen_c - real_c) @ axis)
+        _model = ExportableDetector(cnn, mean, std, real_c, axis, scale).eval()
+        _lda = (d["lda_mean"], d["lda_scalings"]) if "lda_mean" in d.files else None
+    else:
+        _model = ExportableDetector(cnn, mean, std).eval()   # axis buffers zeroed
+        _lda = None
     return _model, _lda
 
 
@@ -175,6 +187,7 @@ async def predict(file: UploadFile = File(...)):
         action = "used as-is"
 
     model, lda = _load_model()
+    has_geometry = (ROOT / "results" / "tables" / "embeddings.npz").exists()
     with torch.no_grad():
         p_fake, axis_pos, emb = model(torch.from_numpy(wav[None, :]).float())
 
@@ -187,11 +200,17 @@ async def predict(file: UploadFile = File(...)):
     return {
         "pFake": round(float(p_fake[0]), 4),
         "verdict": "likely AI-generated" if float(p_fake[0]) >= 0.5 else "likely real",
-        "axisPos": round(float(axis_pos[0]), 3),
+        # Zeroed axis buffers would report a meaningless 0.0; send null instead.
+        "axisPos": round(float(axis_pos[0]), 3) if has_geometry else None,
         "ldaPoint": point,
+        "geometryAvailable": has_geometry,
         "input": {"originalSeconds": original_seconds, "action": action,
                   "sampleRate": 16_000},
-        "caveats": [
+        "caveats": ([] if has_geometry else [
+            "Feature-space placement unavailable: results/tables/embeddings.npz "
+            "is missing. Generate it with: python -m src.analysis.embeddings "
+            "--project",
+        ]) + [
             "Trained on 4-second environmental field recordings. Speech, music "
             "or silence is out of distribution and the result is not meaningful.",
             "A course research model: 0.0242 EER on generators it trained on, "

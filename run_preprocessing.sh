@@ -46,5 +46,13 @@ echo ">>> verifying"
 python3 -u -m src.preprocessing.verify_subset 2>&1 | tee logs/verify.log
 
 echo
+echo ">>> standardisation report"
+python3 -u -m src.preprocessing.audio_report 2>&1 | tee logs/audio_report.log
+
+echo
+echo ">>> waveform / log-Mel plots"
+python3 -u -m src.preprocessing.visualize 2>&1 | tee logs/visualize.log
+
+echo
 echo "Done. If any split reports incomplete source groups or problem clips,"
 echo "just run this script again - it resumes and fills the gaps."

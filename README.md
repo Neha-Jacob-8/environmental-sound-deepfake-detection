@@ -326,6 +326,24 @@ its probability, its position on the real→seen-fake axis and its coordinates i
 the embedding map. See [`web/README.md`](web/README.md) for the full endpoint
 list.
 
+## Regenerating what git does not track
+
+Checkpoints, the embedding dump and the audio are gitignored because they are
+large and reproducible. A fresh clone rebuilds them in this order:
+
+```bash
+./run_preprocessing.sh                       # audio + manifest  (~45 min)
+python3 -m src.training.train --model logmel_cnn
+python3 -m src.evaluation.compare            # results/tables/model_comparison.csv
+python3 -m src.analysis.embeddings --project # results/tables/embeddings.npz
+python3 -m src.analysis.export_onnx          # docs/model/logmel_cnn.onnx
+```
+
+`logmel_stats.npz` regenerates itself on first use. The API degrades rather than
+breaking when a piece is missing: without `embeddings.npz`, `/api/predict` still
+returns a verdict but reports `geometryAvailable: false` and omits the
+feature-space position.
+
 ## Credits
 
 Preprocessing was built jointly. The detection models — AASIST, the
