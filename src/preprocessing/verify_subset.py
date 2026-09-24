@@ -26,7 +26,14 @@ TARGET_LEN = 64_000
 SPLITS = ["train", "validation", "test"]
 
 
-def check_split(split, root):
+def check_split(split, root, stats=None):
+    """Verify one split's audio against its metadata.
+
+    stats: optional dict of collections.Counter (keys "sr", "channels",
+    "duration", "samples") to accumulate per-clip properties for clips that
+    pass verification. Passing None (the default) skips this and leaves
+    behaviour identical to before - existing callers are unaffected.
+    """
     meta = Path(root) / "metadata" / f"{split}_subset.csv"
     audio_dir = Path(root) / "processed" / split
     if not meta.exists():
@@ -58,9 +65,16 @@ def check_split(split, root):
             problems.append((row.filename, "silent"))
         else:
             ok.append(row.filename)
+            if stats is not None:
+                stats["sr"][sr] += 1
+                stats["channels"][1] += 1  # wav.ndim == 1 was just checked above
+                stats["duration"][round(len(wav) / sr, 3)] += 1
+                stats["samples"][len(wav)] += 1
 
     clean = df[df.filename.isin(set(ok))].copy()
-    clean["path"] = clean.filename.map(lambda f: str(audio_dir / f))
+    # Always forward slashes in the CSV so the manifest is portable between
+    # Windows and Linux/Colab (a raw Windows path string breaks on Linux).
+    clean["path"] = clean.filename.map(lambda f: (audio_dir / f).as_posix())
 
     print(f"\n[{split}]")
     print(f"  metadata rows : {len(df)}")
