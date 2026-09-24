@@ -125,7 +125,17 @@ def load_checkpoint(path, device="cpu"):
         kwargs.pop(k, None)
 
     model = build_model(name, **kwargs)
-    model.load_state_dict(ck["state_dict"])
+    # A slimmed checkpoint omits the frozen pretrained frontend, which
+    # build_model has already populated from torchaudio's cache. Those are the
+    # only keys allowed to be missing; anything else is a real mismatch.
+    missing, unexpected = model.load_state_dict(ck["state_dict"], strict=False)
+    stray = [k for k in missing
+             if not k.startswith(("frontend.model.",
+                                  "beats_aasist_branch.frontend.model."))]
+    if stray or unexpected:
+        raise RuntimeError(
+            f"checkpoint does not match {name}: missing {stray[:5]}, "
+            f"unexpected {list(unexpected)[:5]}")
     model.to(device).eval()
     ck["model"] = name
     return model, ck

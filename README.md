@@ -326,6 +326,33 @@ its probability, its position on the real→seen-fake axis and its coordinates i
 the embedding map. See [`web/README.md`](web/README.md) for the full endpoint
 list.
 
+## Disk footprint
+
+The working copy is ~2.0 GB, almost all of it the audio subset:
+
+| | |
+|---|---|
+| `data/processed/` | 1.7 GB — 9,900 clips, regenerable from HuggingFace |
+| `web/node_modules/` | 186 MB — `npm install` |
+| `docs/` | 17 MB — 80 demo clips + the ONNX model |
+| `results/models/` | 22 MB — nine checkpoints |
+
+Checkpoints are kept slim on purpose. Level 3 and fusion embed a frozen
+pretrained frontend that made them 363 MB each; those weights are identical
+across checkpoints, deterministic, and already cached by torchaudio, so storing
+them again bought nothing. `src/analysis/slim_checkpoints.py` drops them,
+taking the four from 1.53 GB to 22 MB with predictions bit-identical across all
+2,400 test clips. Run it after training anything with a frozen frontend:
+
+```bash
+python3 -m src.analysis.slim_checkpoints --dry-run
+python3 -m src.analysis.slim_checkpoints
+```
+
+`load_checkpoint` rebuilds the frontend from torchaudio's cache and accepts
+those keys being absent — but *only* those; any other missing key is still an
+error, so a genuinely mismatched checkpoint cannot load silently.
+
 ## Regenerating what git does not track
 
 Checkpoints, the embedding dump and the audio are gitignored because they are
