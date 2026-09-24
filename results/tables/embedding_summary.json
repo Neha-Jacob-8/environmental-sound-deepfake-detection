@@ -1,0 +1,98 @@
+{
+  "model": "logmel_cnn",
+  "group_distance": {
+    "real": 2.0252201557159424,
+    "seen": 6.897825717926025,
+    "unseen": 4.9459452629089355
+  },
+  "per_generator": [
+    {
+      "generator": "REAL",
+      "name": "Real recording",
+      "group": "real",
+      "n": 300,
+      "dist_to_real_centroid": 2.0252201557159424,
+      "dist_std": 1.0870072841644287,
+      "mean_logit": -6.469851970672607
+    },
+    {
+      "generator": "G01",
+      "name": "AudioLDM (TTA)",
+      "group": "seen",
+      "n": 300,
+      "dist_to_real_centroid": 7.654574394226074,
+      "dist_std": 1.278039813041687,
+      "mean_logit": 9.96790885925293
+    },
+    {
+      "generator": "G02",
+      "name": "AudioLDM 2 (TTA)",
+      "group": "seen",
+      "n": 300,
+      "dist_to_real_centroid": 6.921503067016602,
+      "dist_std": 1.3214117288589478,
+      "mean_logit": 8.41585636138916
+    },
+    {
+      "generator": "G03",
+      "name": "AudioGen (TTA)",
+      "group": "seen",
+      "n": 300,
+      "dist_to_real_centroid": 6.353309154510498,
+      "dist_std": 0.9415503144264221,
+      "mean_logit": 7.214938163757324
+    },
+    {
+      "generator": "G04",
+      "name": "AudioLDM (ATA)",
+      "group": "seen",
+      "n": 300,
+      "dist_to_real_centroid": 6.661913871765137,
+      "dist_std": 1.089449167251587,
+      "mean_logit": 8.088833808898926
+    },
+    {
+      "generator": "G05",
+      "name": "AudioLCM (TTA)",
+      "group": "unseen",
+      "n": 300,
+      "dist_to_real_centroid": 5.039947986602783,
+      "dist_std": 1.2445757389068604,
+      "mean_logit": 3.6889123916625977
+    },
+    {
+      "generator": "G06",
+      "name": "TangoFlux (TTA)",
+      "group": "unseen",
+      "n": 300,
+      "dist_to_real_centroid": 5.153149604797363,
+      "dist_std": 1.0803897380828857,
+      "mean_logit": 3.6853954792022705
+    },
+    {
+      "generator": "G07",
+      "name": "AudioLDM 2 (ATA)",
+      "group": "unseen",
+      "n": 300,
+      "dist_to_real_centroid": 4.644738674163818,
+      "dist_std": 1.2833479642868042,
+      "mean_logit": 2.9268319606781006
+    }
+  ],
+  "tsne_centroids": {
+    "real": [
+      -50.85457992553711,
+      8.914356231689453
+    ],
+    "seen": [
+      20.776212692260742,
+      -0.06749538332223892
+    ],
+    "unseen": [
+      -10.995287895202637,
+      -1.8419374227523804
+    ]
+  },
+  "knn_acc_2d": 0.8275,
+  "knn_acc_128d": 0.8408333333333333
+}
