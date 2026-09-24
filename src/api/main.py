@@ -13,6 +13,7 @@ static bundle cannot do, and it is why this is a server rather than a JSON file.
 
 import argparse
 import io
+import logging
 import sys
 from pathlib import Path
 
@@ -233,6 +234,12 @@ async def _predict(file):
 # than an ImportError), just attempt the registration and catch the failure.
 # That tracks whatever FastAPI actually requires, in any version.
 def _register_predict() -> tuple[bool, str]:
+    # FastAPI logs the failure itself before raising. We handle the raise, so
+    # that log line is noise that reads like a crash - and it prints twice,
+    # once for this process and once when uvicorn re-imports the app.
+    fastapi_log = logging.getLogger("fastapi")
+    previously = fastapi_log.level
+    fastapi_log.setLevel(logging.CRITICAL)
     try:
         from fastapi import File, UploadFile
 
@@ -257,6 +264,8 @@ def _register_predict() -> tuple[bool, str]:
             raise HTTPException(503, hint)
 
         return False, hint
+    finally:
+        fastapi_log.setLevel(previously)
 
 
 UPLOADS_AVAILABLE, UPLOAD_HINT = _register_predict()

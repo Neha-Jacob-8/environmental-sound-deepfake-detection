@@ -94,7 +94,7 @@ Or all of it at once:
 
 ```bash
 ./run_preprocessing.sh
-TRAIN=40 VAL=20 TEST=20 ./run_preprocessing.sh    # smaller pilot
+TRAIN=40 VAL=20 TEST=20 ./run_preprocessing.sh
 ```
 
 Or as a notebook — [`notebooks/preprocessing.ipynb`](notebooks/preprocessing.ipynb)
@@ -126,9 +126,9 @@ every fetch.
 ### Standardisation report and plots
 
 ```bash
-python3 -m src.preprocessing.audio_report               # results/preprocessing_report.{json,txt}
-python3 -m src.preprocessing.visualize                  # waveform + log-Mel PNGs
-python3 -m src.preprocessing.visualize --split test --generator G06   # an unseen generator
+python3 -m src.preprocessing.audio_report
+python3 -m src.preprocessing.visualize
+python3 -m src.preprocessing.visualize --split test --generator G06
 ```
 
 `audio_report.py` reuses `verify_subset`'s per-clip checks to print the sample
@@ -199,8 +199,8 @@ everything downstream is front-end agnostic.
 ### Running
 
 ```bash
-python3 -m src.training.smoke_test        # one train + eval step per model, seconds
-./run_training.sh                         # train and evaluate all five
+python3 -m src.training.smoke_test
+./run_training.sh
 MODELS="logmel_cnn aasist" ./run_training.sh
 ```
 
@@ -209,7 +209,7 @@ or individually:
 ```bash
 python3 -m src.training.train --model aasist --epochs 20
 python3 -m src.evaluation.evaluate --checkpoint results/models/aasist_best.pt
-python3 -m src.evaluation.compare         # all checkpoints side by side
+python3 -m src.evaluation.compare
 ```
 
 `fusion` initialises its branches from trained checkpoints, so train `cnn` and
@@ -238,8 +238,8 @@ All five models scored on the same 2,400-clip test split, through the same
 `src/evaluation/compare.py`, so every number below is computed identically:
 
 ```bash
-./run_training.sh                    # train everything
-python3 -m src.evaluation.compare    # the table below
+./run_training.sh
+python3 -m src.evaluation.compare
 ```
 
 | `--model` | Level | Input | Params | seen EER | unseen EER | gap |
@@ -385,9 +385,23 @@ plus a small API; the API reads `results/tables/` per request, so the site never
 disagrees with the repository and retraining needs no rebuild.
 
 ```bash
-python3 -m src.api.main        # terminal 1: http://127.0.0.1:8000
-cd web && npm install && npm run dev   # terminal 2: http://localhost:5173
+python3 -m src.api.main
 ```
+
+then, in a second terminal:
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+The API serves `http://127.0.0.1:8000`, the frontend `http://localhost:5173`.
+`npm install` is only needed the first time.
+
+Commands here carry no trailing `# comments`: zsh does not treat `#` as a
+comment in an interactive shell, so a pasted line sends it to the program as an
+argument.
 
 If the server reports that `/api/predict` is disabled, python-multipart is
 missing from **the interpreter running the server** — which is not always the
@@ -397,7 +411,7 @@ other eleven endpoints work regardless, so the dashboard is unaffected.
 Check that the API is serving the real tables and nothing else:
 
 ```bash
-python3 -m src.api.verify      # compares 91 values against results/tables/
+python3 -m src.api.verify
 ```
 
 `POST /api/predict` runs the trained detector on an uploaded clip and returns
@@ -438,11 +452,11 @@ Checkpoints, the embedding dump and the audio are gitignored because they are
 large and reproducible. A fresh clone rebuilds them in this order:
 
 ```bash
-./run_preprocessing.sh                       # audio + manifest  (~45 min)
+./run_preprocessing.sh
 python3 -m src.training.train --model logmel_cnn
-python3 -m src.evaluation.compare            # results/tables/model_comparison.csv
-python3 -m src.analysis.embeddings --project # results/tables/embeddings.npz
-python3 -m src.analysis.export_onnx          # docs/model/logmel_cnn.onnx
+python3 -m src.evaluation.compare
+python3 -m src.analysis.embeddings --project
+python3 -m src.analysis.export_onnx
 ```
 
 `logmel_stats.npz` regenerates itself on first use. The API degrades rather than

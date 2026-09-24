@@ -8,16 +8,18 @@ training curves and generator profiles.
 Two processes. The API first, from the repository root:
 
 ```bash
-python3 -m src.api.main            # http://127.0.0.1:8000
+python3 -m src.api.main
 ```
 
-then the frontend:
+serving `http://127.0.0.1:8000`. Then the frontend:
 
 ```bash
 cd web
 npm install
-npm run dev                        # http://localhost:5173
+npm run dev
 ```
+
+on `http://localhost:5173`; `npm install` is only needed the first time.
 
 Vite proxies `/api` to the backend, so the browser sees one origin and there is
 no CORS and no base URL to configure. If the API is not running, the page says
@@ -50,7 +52,7 @@ The dashboard is only trustworthy if its numbers trace back to the files the
 training runs wrote. That is a command, not a promise:
 
 ```bash
-python3 -m src.api.verify        # with the API running
+python3 -m src.api.verify
 ```
 
 It reads `results/tables/` and the manifest directly, reads the API, and
@@ -60,7 +62,7 @@ The built bundle contains no measured values at all. Confirm it yourself:
 
 ```bash
 cd web && npm run build
-grep -oE "0\.0242|0\.0833|240737" dist/assets/*.js   # no matches
+grep -oE "0\.0242|0\.0833|240737" dist/assets/*.js
 ```
 
 Every figure on the page, including the ones quoted inside the findings prose,
