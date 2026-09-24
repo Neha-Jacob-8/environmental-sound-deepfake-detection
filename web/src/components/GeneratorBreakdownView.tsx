@@ -550,7 +550,7 @@ export const GeneratorBreakdownView: React.FC<GeneratorBreakdownViewProps> = ({ 
                   }}
                 />
                 {MODELS.map(m => (
-                  <Bar 
+                  <Bar isAnimationActive={false} 
                     key={m.id} 
                     dataKey={m.id} 
                     name={m.id} 

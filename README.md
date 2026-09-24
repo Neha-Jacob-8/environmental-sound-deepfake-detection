@@ -327,6 +327,18 @@ detail is not a shortcut, it is the evidence. Meanwhile `gain` changes nothing,
 because peak normalisation already removes it, and `time_shift` changes nothing,
 because global average pooling is already shift-invariant.
 
+Training with only the two spectrally harmless transforms confirms it:
+
+| `logmel_cnn` | gap |
+|---|---|
+| baseline (3 seeds) | 0.0608 ±0.0074 |
+| `--augment gain time_shift` (2 seeds) | 0.0661 ±0.0072 |
+| `--augment` — all four (3 seeds) | **0.1361 ±0.0042** |
+
+The safe pair is indistinguishable from no augmentation at all, and the whole
+of the damage comes from `noise` and `lowpass` — the two that perturb the
+spectrum.
+
 So in this family the transforms either do nothing or destroy the signal, with
 no useful middle ground. An augmentation that could help here would have to
 leave fine spectral structure intact, which rules out most standard audio

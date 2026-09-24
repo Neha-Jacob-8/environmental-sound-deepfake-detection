@@ -296,7 +296,7 @@ export const TrainingCurvesView: React.FC = () => {
                 if (!visibleModels[m.id]) return null;
                 return (
                   <Line
-                    key={m.id}
+isAnimationActive={false}                     key={m.id}
                     type="monotone"
                     dataKey={m.id}
                     name={m.id}
@@ -305,7 +305,6 @@ export const TrainingCurvesView: React.FC = () => {
                     dot={false}
                     activeDot={{ r: 4, stroke: m.color, strokeWidth: 1, fill: 'var(--surface-card)' }}
                     connectNulls={false}
-                    isAnimationActive={true}
                     animationDuration={200}
                   />
                 );

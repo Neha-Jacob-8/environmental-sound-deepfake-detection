@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigation, ViewId } from './components/Navigation';
 import { OverviewView } from './components/OverviewView';
 import { ModelComparisonView } from './components/ModelComparisonView';
@@ -13,8 +13,29 @@ import { GeneratorsView } from './components/GeneratorsView';
 import { ResearchDataProvider } from './data/DataContext';
 import { useTheme } from './hooks/useTheme';
 
+const VIEWS: ViewId[] = ['overview', 'comparison', 'breakdown', 'curves', 'generators'];
+
+const viewFromHash = (): ViewId => {
+  const h = window.location.hash.replace(/^#/, '') as ViewId;
+  return VIEWS.includes(h) ? h : 'overview';
+};
+
 export default function App() {
-  const [currentView, setCurrentView] = useState<ViewId>('overview');
+  // Views live in the URL hash so a particular chart can be linked to, and so
+  // reloading does not bounce you back to the overview.
+  const [currentView, setCurrentViewState] = useState<ViewId>(viewFromHash);
+
+  const setCurrentView = (v: ViewId) => {
+    setCurrentViewState(v);
+    if (viewFromHash() !== v) window.location.hash = v;
+  };
+
+  // Back/forward and hand-edited URLs.
+  useEffect(() => {
+    const onHash = () => setCurrentViewState(viewFromHash());
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
   const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
   const { mode, setMode, resolvedTheme } = useTheme();
 

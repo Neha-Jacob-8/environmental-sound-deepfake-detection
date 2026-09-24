@@ -282,7 +282,7 @@ export const ModelComparisonView: React.FC<ModelComparisonViewProps> = ({
                       : 'Unseen generators (G05–G07)';
                   }}
                 />
-                <Bar 
+                <Bar isAnimationActive={false} 
                   dataKey="seenEer" 
                   name="seenEer"
                   fill="var(--color-seen)" 
@@ -314,7 +314,7 @@ export const ModelComparisonView: React.FC<ModelComparisonViewProps> = ({
                     );
                   })}
                 </Bar>
-                <Bar 
+                <Bar isAnimationActive={false} 
                   dataKey="unseenEer" 
                   name="unseenEer"
                   fill="var(--color-unseen)" 
