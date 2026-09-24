@@ -156,9 +156,18 @@ and silently degrade every prediction.
 1. The verdict — "likely AI-generated" or "likely real" — with `p_fake` as a
    labelled bar, not a bare number.
 2. The clip dropped onto the **same 0→1 axis as view 3**, using `axis_pos`, with
-   the REAL / seen / unseen reference bands behind it. This is the payoff: a
-   user's own audio placed in the same geometry as the research finding.
-3. The log-Mel spectrogram the model computed, if you can render it.
+   the REAL / seen / unseen reference bands behind it.
+3. The clip plotted as a marked point on the **same 2-D map as view 4**. Project
+   the returned 128-d `embedding` yourself:
+
+   ```
+   [lx, ly] = (embedding - ldaTransform.mean) · ldaTransform.scalings
+   ```
+
+   A 128-length vector minus a 128-length mean, times a 128x2 matrix. Both are
+   in the data file. This is the payoff: a user's own audio placed in the same
+   geometry as the research finding, next to every reference clip.
+4. The log-Mel spectrogram the model computed, if you can render it.
 
 **Three honesty requirements, all non-negotiable:**
 
@@ -166,10 +175,10 @@ and silently degrade every prediction.
   Speech, music, or silence is out of distribution and the output is not
   meaningful. Detect the obvious cases where you can and warn; otherwise carry a
   standing note on this view.
-- `axis_pos` is a linear projection, so it is exact for new audio. The **t-SNE
-  map in view 4 cannot place new points** — t-SNE has no transform for unseen
-  data. Never plot a user's clip on that map; place it on the axis instead, and
-  say why if the user might expect otherwise.
+- `axis_pos` and the LDA projection are both linear, so both are exact for audio
+  the model has never seen. The t-SNE coordinates (`x`, `y`) are **not** — t-SNE
+  has no transform for new data. If you offer the t-SNE view as an alternate
+  layout, disable user-clip placement there and say why.
 - This detector reaches 0.0242 EER on generators it trained on and 0.0833 on
   ones it did not. It is a course research model, not a production tool. Say so.
 
@@ -223,13 +232,21 @@ error rate triples.
 
 ### 4. The map — 2-D feature space
 
-Scatter plot of `x`/`y` from the data, coloured by group. Filter chips for
-real / seen / unseen and for individual generators. Clicking a point opens a
-panel with its generator, real model name, axis position, model logit, and audio
-if available. Show the three group centroids as distinct markers.
+Scatter plot coloured by group, with filter chips for real / seen / unseen and
+for individual generators. Clicking a point opens a panel with its generator,
+real model name, axis position, model logit, and audio if available. Show the
+three group centroids as distinct markers, and offer per-generator centroids as
+a toggle (`ldaCentroidsPerGenerator`).
 
-Be honest in a caption: t-SNE distances are not metric — this is a view of the
-structure, and the numbers in view 3 are the actual evidence.
+**Default to the LDA projection** (`lx`, `ly`). It separates the three groups
+better than t-SNE — 0.894 against 0.839 under 5-fold kNN with the projection
+fitted inside each fold and split by source recording — and, being linear, it
+can place clips the model has never seen, which is what lets view 1 drop a
+user's own audio onto this same map.
+
+Offer the t-SNE layout (`x`, `y`) as a secondary toggle for its local structure,
+with two captions: t-SNE distances are not metric, and user clips cannot be
+placed on it. In both layouts, the numbers in view 3 remain the actual evidence.
 
 ### 5. What it costs — results, and the answer to the question
 
@@ -247,6 +264,18 @@ evidence for the negative answer stated on the landing view.
 Per-generator EER for the Log-Mel CNN, the model the embeddings come from:
 G01 0.0100, G02 0.0133, G03 0.0367, G04 0.0300, G05 0.0967, G06 0.0667,
 G07 0.0833.
+
+Include the **centroid geometry** table, from `distanceToRealCentroid` — the
+mean distance from each generator's clips to the real centroid in the full 128-d
+space. It is the same finding as view 3 in absolute units rather than normalised
+ones, and it is what makes "unseen generators sit closer to real" a measurement
+rather than an impression. Show it as a small ranked bar chart, real first.
+
+Also surface `separationAccuracy`: how well the three groups separate under LDA
+(0.894), t-SNE (0.839), the raw 128-d space (0.860) and PCA (0.811), against
+0.333 chance. Caption it honestly — the projection was fitted inside each
+cross-validation fold and the split was by source recording, so these are not
+inflated by leakage.
 
 Lay the fusion row against its own two branches explicitly — a small grouped
 comparison of Waveform CNN, BEATs + AASIST, and Feature Fusion — so a reader can
@@ -271,7 +300,8 @@ Three caveats to state plainly rather than bury:
 
 ```ts
 type Point = {
-  x: number; y: number;      // 2-D t-SNE coordinates
+  lx: number; ly: number;    // 2-D LDA coordinates - the default map
+  x: number; y: number;      // 2-D t-SNE coordinates - secondary layout
   g: string;                 // "REAL" | "G01".."G07"
   grp: "real" | "seen" | "unseen";
   p: number;                 // position on the real->seen-fake axis
@@ -287,8 +317,11 @@ type Point = {
 what a user hears is what the model was given.
 
 `ui-data.json` also carries `axisPosition`, `groupMeans`, `centroids2d`,
-`distanceToRealCentroid`, and `knn3wayAccuracy`. Use those rather than
-recomputing from the sampled points.
+`ldaCentroids`, `ldaCentroidsPerGenerator`, `ldaTransform`,
+`distanceToRealCentroid`, `separationAccuracy`, `modelUrl` and `modelInfo`.
+Use those rather than recomputing from the sampled points — the points are a
+balanced sample of the 2,400 test clips, so statistics computed from them will
+not match the real ones.
 
 Generator reference — show real names, never bare IDs:
 G01 AudioLDM · G02 AudioLDM 2 · G03 AudioGen · G04 AudioLDM (audio-to-audio) ·
