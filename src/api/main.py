@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
@@ -40,6 +40,9 @@ app.add_middleware(
 _model = None       # loaded on first /api/predict, not at import
 _lda = None
 
+UPLOADS_AVAILABLE = False
+UPLOAD_HINT = ""
+
 
 def _need(value, what):
     if value is None or (hasattr(value, "__len__") and len(value) == 0):
@@ -49,7 +52,9 @@ def _need(value, what):
 
 @app.get("/api/health")
 def health():
-    return {"ok": True, "models": store.available()}
+    return {"ok": True, "models": store.available(),
+            "uploadsAvailable": UPLOADS_AVAILABLE,
+            "python": sys.executable}
 
 
 @app.get("/api/summary")
@@ -157,8 +162,7 @@ def _load_model():
     return _model, _lda
 
 
-@app.post("/api/predict")
-async def predict(file: UploadFile = File(...)):
+async def _predict(file):
     """Run the detector on an uploaded clip.
 
     The model expects 4.000 s of 16 kHz mono. Anything else is resampled,
@@ -219,8 +223,49 @@ async def predict(file: UploadFile = File(...)):
     }
 
 
+# /api/predict takes a file upload, which FastAPI implements with
+# python-multipart. When that is missing, the decorator raises at import time
+# and the whole API dies - including every endpoint the dashboard needs, none
+# of which involve uploads.
+#
+# Rather than guess the dependency's import name (starlette tries
+# python_multipart, then multipart, and FastAPI raises a RuntimeError rather
+# than an ImportError), just attempt the registration and catch the failure.
+# That tracks whatever FastAPI actually requires, in any version.
+def _register_predict() -> tuple[bool, str]:
+    try:
+        from fastapi import File, UploadFile
+
+        @app.post("/api/predict")
+        async def predict(file: UploadFile = File(...)):
+            """Run the detector on an uploaded clip."""
+            return await _predict(file)
+
+        return True, ""
+    except (ImportError, RuntimeError):
+        hint = (
+            "File uploads need python-multipart, which is not installed for "
+            f"the interpreter running this server:\n    {sys.executable}\n"
+            "Install it into that same interpreter with:\n"
+            f"    {sys.executable} -m pip install python-multipart\n"
+            "Every other endpoint works without it."
+        )
+
+        @app.post("/api/predict")
+        def predict_unavailable() -> None:
+            """Same path, so callers get a clear 503 rather than a 404."""
+            raise HTTPException(503, hint)
+
+        return False, hint
+
+
+UPLOADS_AVAILABLE, UPLOAD_HINT = _register_predict()
+
+
 def main():
     import uvicorn
+    if not UPLOADS_AVAILABLE:
+        print(f"note: /api/predict disabled. {UPLOAD_HINT}\n", flush=True)
     ap = argparse.ArgumentParser()
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8000)

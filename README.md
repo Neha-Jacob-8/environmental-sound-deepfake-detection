@@ -389,6 +389,11 @@ python3 -m src.api.main        # terminal 1: http://127.0.0.1:8000
 cd web && npm install && npm run dev   # terminal 2: http://localhost:5173
 ```
 
+If the server reports that `/api/predict` is disabled, python-multipart is
+missing from **the interpreter running the server** — which is not always the
+one `pip` writes to. The message names the exact interpreter and command; the
+other eleven endpoints work regardless, so the dashboard is unaffected.
+
 Check that the API is serving the real tables and nothing else:
 
 ```bash
