@@ -69,9 +69,3 @@ class LogMelCNN(nn.Module):
 
     def n_params(self):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
-
-
-def build_model(name="cnn", **kw):
-    if name != "cnn":
-        raise ValueError(f"unknown model {name!r}")
-    return LogMelCNN(**kw)

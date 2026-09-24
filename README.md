@@ -123,6 +123,20 @@ in the Dataset so raw clips stay available for augmentation experiments.
 `manifest.csv` is regenerated (not appended) — re-run `verify_subset.py` after
 every fetch.
 
+### Standardisation report and plots
+
+```bash
+python3 -m src.preprocessing.audio_report               # results/preprocessing_report.{json,txt}
+python3 -m src.preprocessing.visualize                  # waveform + log-Mel PNGs
+python3 -m src.preprocessing.visualize --split test --generator G06   # an unseen generator
+```
+
+`audio_report.py` reuses `verify_subset`'s per-clip checks to print the sample
+rate / channel / duration distributions and confirm every clip is standardised.
+`visualize.py` picks a REAL clip and a FAKE clip from the same source recording
+where it can, and writes waveform, log-Mel and side-by-side comparison plots to
+`results/plots/`.
+
 ## Notes
 
 - `src/preprocessing/build_subset.py` uses `datasets.load_dataset(streaming=True)`.
@@ -135,15 +149,88 @@ every fetch.
 
 ## Planned work
 
-| Stage | Model | Status |
-|-------|-------|--------|
-| Preprocessing | — | done |
-| Level 1 | CNN on log-Mel spectrograms | done |
-| Level 2 | AASIST (raw waveform) | not started |
-| Level 3 | BEATs + AASIST | not started |
-| Novelty | Augmentation, then CNN + BEATs feature fusion | not started |
+| Stage | Model | `--model` | Status |
+|-------|-------|-----------|--------|
+| Preprocessing | — | — | done |
+| Level 1 | CNN on log-Mel spectrograms | `logmel_cnn` | trained + evaluated |
+| Level 1 | CNN on raw waveform | `cnn` | implemented, not yet trained |
+| Level 2 | AASIST | `aasist` | implemented, not yet trained |
+| Level 3 | BEATs + AASIST | `beats_aasist` | implemented, not yet trained |
+| Novelty | CNN + BEATs feature fusion | `fusion` | implemented, not yet trained |
+| Novelty | Augmentation | — | not started |
 
 Primary metric is **EER**, reported per generator, alongside F1 and AUC.
+
+## Detection models
+
+Five detectors. Every one returns raw logits `(B,)`, so the training loop and
+the evaluation scripts are identical across them and only `--model` changes.
+What differs is the input each wants, which the registry in
+[`src/models/__init__.py`](src/models/__init__.py) declares and `train.py` reads,
+so the right `EnvSDDDataset` mode is built automatically.
+
+| `--model` | Level | Input | Front-end | Back-end |
+|---|---|---|---|---|
+| `logmel_cnn` | 1 | `(1, 64, 251)` | log-Mel from the Dataset, standardised per mel bin over the train split | 4 conv blocks → global avg pool |
+| `cnn` | 1 | `(1, 64000)` | log-Mel computed in-model, standardised per clip | Conv2D ×2 → dense |
+| `aasist` | 2 | `(1, 64000)` | learnable 1-D conv | spectro-temporal graph attention |
+| `beats_aasist` | 3 | `(1, 64000)` | frozen pretrained SSL model | graph attention |
+| `fusion` | novelty | `(1, 64000)` | `cnn` branch ⊕ `beats_aasist` branch | joint classifier |
+
+**Two Level 1 CNNs, deliberately.** `logmel_cnn` standardises per mel bin using
+statistics computed once over the train split; `cnn` standardises each clip
+against its own mean and std. Per-clip standardisation discards absolute level,
+which may itself carry a generator cue; per-bin standardisation keeps it and
+flattens the ~35 dB tilt across mel bins instead. Both are defensible, so both
+are kept — the choice is measurable rather than assumed. `fusion` needs the
+waveform variant, because its CNN branch must consume the same input its BEATs
+branch does.
+
+**Level 2 and the graph-attention back-end** are a compact from-scratch
+reimplementation in the spirit of Jung et al., *AASIST* (ICASSP 2022) — not a
+line-by-line port. Sizes are reduced so it trains on CPU in reasonable time; see
+the docstring in [`graph_attention.py`](src/models/graph_attention.py).
+
+**Level 3's front-end** is torchaudio's frozen `WAV2VEC2_BASE`, not Microsoft's
+BEATs checkpoint, which is not pip-installable. `load_frontend()` in
+[`beats_aasist.py`](src/models/beats_aasist.py) is the drop-in extension point;
+everything downstream is front-end agnostic.
+
+### Running
+
+```bash
+python3 -m src.training.smoke_test        # one train + eval step per model, seconds
+./run_training.sh                         # train and evaluate all five
+MODELS="logmel_cnn aasist" ./run_training.sh
+```
+
+or individually:
+
+```bash
+python3 -m src.training.train --model aasist --epochs 20
+python3 -m src.evaluation.evaluate --checkpoint results/models/aasist_best.pt
+python3 -m src.evaluation.compare         # all checkpoints side by side
+```
+
+`fusion` initialises its branches from trained checkpoints, so train `cnn` and
+`beats_aasist` first:
+
+```bash
+python3 -m src.training.train --model fusion --epochs 15 \
+    --cnn_checkpoint results/models/cnn_best.pt \
+    --beats_aasist_checkpoint results/models/beats_aasist_best.pt
+```
+
+`compare` sorts by **generalisation gap**, not by overall EER: a model that wins
+on seen generators and collapses on unseen ones is worse, for this project's
+question, than one that is mediocre on both.
+
+### Note for Apple Silicon
+
+`adaptive_avg_pool` is unimplemented on MPS for non-divisible sizes
+([pytorch#96056](https://github.com/pytorch/pytorch/issues/96056)), which AASIST
+and Level 3 both hit. [`src/models/pooling.py`](src/models/pooling.py) falls back
+to CPU for that one op, keeping results identical on every backend.
 
 ## Results
 
@@ -194,6 +281,14 @@ close. The model breaks along a different axis — across *generators* — which
 validation split cannot see, because it contains only G01–G04. Precision holds on
 test while recall falls on the unseen generators: roughly one unseen fake in seven
 is passed as real.
+
+## Credits
+
+Preprocessing was built jointly. The detection models — AASIST, the
+graph-attention back-end, BEATs+AASIST, the waveform CNN and the fusion model —
+together with `audio_report.py`, `visualize.py` and the Colab pipeline, are the
+work of a project partner, merged in here and adapted to this repository's
+Dataset and training interfaces.
 
 ## References
 

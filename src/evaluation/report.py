@@ -35,7 +35,7 @@ from sklearn.metrics import (
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.datasets.envsdd_dataset import make_loader          # noqa: E402
 from src.evaluation.metrics import eer                       # noqa: E402
-from src.models.cnn import LogMelCNN                         # noqa: E402
+from src.models import input_mode, load_checkpoint           # noqa: E402
 from src.preprocessing.generators import (                   # noqa: E402
     GENERATOR_NAMES,
     SEEN_GENERATORS,
@@ -61,21 +61,22 @@ def row(y, s, thr):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--checkpoint", default="results/models/cnn_best.pt")
+    p.add_argument("--checkpoint", default="results/models/logmel_cnn_best.pt")
     p.add_argument("--num-workers", type=int, default=4)
-    p.add_argument("--out", default="results/tables/level1_cnn_report.csv")
+    p.add_argument("--out", default=None,
+                   help="default results/tables/<model>_report.csv")
     a = p.parse_args()
 
     dev = pick_device()
-    ck = torch.load(a.checkpoint, map_location=dev, weights_only=False)
-    model = LogMelCNN(**ck.get("model_kwargs", {}))
-    model.load_state_dict(ck["state_dict"])
-    model.to(dev).eval()
-    print(f"checkpoint: epoch {ck['epoch']}, val EER {ck['val_eer']:.4f}\n")
+    model, ck = load_checkpoint(a.checkpoint, dev)
+    mode = ck.get("input_mode") or input_mode(ck["model"])
+    a.out = a.out or f"results/tables/{ck['model']}_report.csv"
+    print(f"checkpoint: model={ck['model']}, epoch {ck['epoch']}, "
+          f"val EER {ck['val_eer']:.4f}, input mode={mode}\n")
 
     data = {}
     for split in ("train", "validation", "test"):
-        ld = make_loader(split, mode="logmel", batch_size=64, shuffle=False,
+        ld = make_loader(split, mode=mode, batch_size=64, shuffle=False,
                          num_workers=a.num_workers)
         s, y, _ = score_loader(model, ld, dev)
         data[split] = (y, s, ld.dataset.df.generator.to_numpy())

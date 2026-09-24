@@ -27,7 +27,7 @@ from src.evaluation.metrics import (                             # noqa: E402
     per_generator_eer,
     seen_unseen_summary,
 )
-from src.models.cnn import LogMelCNN                             # noqa: E402
+from src.models import input_mode, load_checkpoint               # noqa: E402
 from src.preprocessing.generators import (                       # noqa: E402
     GENERATOR_NAMES,
     SEEN_GENERATORS,
@@ -37,29 +37,29 @@ from src.training.train import pick_device, score_loader         # noqa: E402
 
 
 def load_model(checkpoint, device):
-    ck = torch.load(checkpoint, map_location=device, weights_only=False)
-    model = LogMelCNN(**ck.get("model_kwargs", {}))
-    model.load_state_dict(ck["state_dict"])
-    model.to(device).eval()
-    print(f"loaded {checkpoint}  (epoch {ck.get('epoch')}, "
-          f"val EER {ck.get('val_eer', float('nan')):.4f})")
-    return model
+    model, ck = load_checkpoint(checkpoint, device)
+    print(f"loaded {checkpoint}  model={ck['model']}  epoch {ck.get('epoch')}  "
+          f"val EER {ck.get('val_eer', float('nan')):.4f}")
+    return model, ck
 
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--checkpoint", default="results/models/cnn_best.pt")
+    p.add_argument("--checkpoint", default="results/models/logmel_cnn_best.pt")
     p.add_argument("--split", default="test")
     p.add_argument("--batch-size", type=int, default=64)
     p.add_argument("--num-workers", type=int, default=4)
     p.add_argument("--device", default="auto")
-    p.add_argument("--out", default="results/tables/level1_cnn_test.csv")
+    p.add_argument("--out", default=None,
+                   help="default results/tables/<model>_test_per_generator.csv")
     a = p.parse_args()
 
     device = pick_device(a.device)
-    model = load_model(a.checkpoint, device)
+    model, ck = load_model(a.checkpoint, device)
+    a.out = a.out or f"results/tables/{ck['model']}_test_per_generator.csv"
 
-    loader = make_loader(a.split, mode="logmel", batch_size=a.batch_size,
+    mode = ck.get("input_mode") or input_mode(ck["model"])
+    loader = make_loader(a.split, mode=mode, batch_size=a.batch_size,
                          shuffle=False, num_workers=a.num_workers)
     print(loader.dataset.describe())
 

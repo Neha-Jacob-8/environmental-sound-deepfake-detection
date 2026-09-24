@@ -17,7 +17,7 @@ import torch
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.datasets.envsdd_dataset import make_loader          # noqa: E402
 from src.evaluation.metrics import eer                       # noqa: E402
-from src.models.cnn import LogMelCNN                         # noqa: E402
+from src.models import input_mode, load_checkpoint           # noqa: E402
 from src.preprocessing.generators import (                   # noqa: E402
     SEEN_GENERATORS,
     UNSEEN_GENERATORS,
@@ -27,19 +27,18 @@ from src.training.train import pick_device, score_loader     # noqa: E402
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--checkpoint", default="results/models/cnn_best.pt")
+    p.add_argument("--checkpoint", default="results/models/logmel_cnn_best.pt")
     p.add_argument("--n-boot", type=int, default=2000)
     p.add_argument("--num-workers", type=int, default=0)
     p.add_argument("--seed", type=int, default=0)
     a = p.parse_args()
 
     dev = pick_device()
-    ck = torch.load(a.checkpoint, map_location=dev, weights_only=False)
-    model = LogMelCNN(**ck.get("model_kwargs", {}))
-    model.load_state_dict(ck["state_dict"])
-    model.to(dev).eval()
+    model, ck = load_checkpoint(a.checkpoint, dev)
+    mode = ck.get("input_mode") or input_mode(ck["model"])
+    print(f"model={ck['model']}, input mode={mode}")
 
-    loader = make_loader("test", mode="logmel", batch_size=64, shuffle=False,
+    loader = make_loader("test", mode=mode, batch_size=64, shuffle=False,
                          num_workers=a.num_workers)
     scores, labels, _ = score_loader(model, loader, dev)
     df = loader.dataset.df

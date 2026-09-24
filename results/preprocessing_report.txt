@@ -1,0 +1,38 @@
+Preprocessing Summary Report
+================================
+
+Target sample rate : 16000 Hz
+Target channels    : 1 (mono)
+Target duration    : 4.0 s
+Target samples     : 64000
+
+[train]
+  total clips     : 6000
+  usable clips    : 6000
+  problematic     : 0
+  generator counts: {'G01': 1200, 'G02': 1200, 'G03': 1200, 'G04': 1200, 'REAL': 1200}
+  label counts    : {'1': 4800, '0': 1200} (0=real, 1=fake)
+  source datasets : {'TUTASC2019Dev': 4800, 'UrbanSound8K': 600, 'TUTSED2017Dev': 300, 'TUTSED2016Dev': 250, 'TUTSED2016Eval': 50}
+
+[validation]
+  total clips     : 1500
+  usable clips    : 1500
+  problematic     : 0
+  generator counts: {'G01': 300, 'G02': 300, 'G03': 300, 'G04': 300, 'REAL': 300}
+  label counts    : {'1': 1200, '0': 300} (0=real, 1=fake)
+  source datasets : {'TUTASC2019Dev': 1200, 'UrbanSound8K': 150, 'TUTSED2017Dev': 150}
+
+[test]
+  total clips     : 2400
+  usable clips    : 2400
+  problematic     : 0
+  generator counts: {'G01': 300, 'G02': 300, 'G03': 300, 'G04': 300, 'G05': 300, 'G06': 300, 'G07': 300, 'REAL': 300}
+  label counts    : {'1': 2100, '0': 300} (0=real, 1=fake)
+  source datasets : {'TUTASC2019Dev': 1440, 'UrbanSound8K': 240, 'TUTSED2017Dev': 240, 'DCASE2023Task7': 240, 'Clotho': 240}
+
+TOTAL usable clips    : 9900
+TOTAL problematic     : 0
+Sample rates seen     : {16000: 9900}
+Channel counts seen   : {1: 9900}
+Durations seen (s)    : {4.0: 9900}
+Waveform lengths seen : {64000: 9900}

@@ -1,7 +1,15 @@
-"""Train the Level 1 log-Mel CNN.
+"""Train any of the project's detectors.
 
-    python -m src.training.train                      # defaults
-    python -m src.training.train --epochs 60 --lr 3e-4
+    python -m src.training.train                             # logmel_cnn
+    python -m src.training.train --model aasist --epochs 20
+    python -m src.training.train --model fusion --epochs 15 \
+        --cnn_checkpoint results/models/cnn_best.pt \
+        --beats_aasist_checkpoint results/models/beats_aasist_best.pt
+
+Every model returns raw logits (B,), so the loop below is identical for all of
+them; only `--model` changes. Each one declares the Dataset mode it needs (raw
+waveform or log-Mel) in the registry, so the right input is built automatically
+- see src/models/__init__.py.
 
 Model selection is on **validation EER**, not validation loss. Loss is dominated
 by the easy majority of clips, while EER is the metric the result is reported in,
@@ -29,7 +37,12 @@ import torch.nn as nn
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.datasets.envsdd_dataset import make_loader          # noqa: E402
 from src.evaluation.metrics import all_metrics               # noqa: E402
-from src.models.cnn import LogMelCNN                         # noqa: E402
+from src.models import (                                     # noqa: E402
+    LEVEL,
+    MODEL_NAMES,
+    build_model,
+    input_mode,
+)
 
 
 def pick_device(requested="auto"):
@@ -84,6 +97,7 @@ def train_one_epoch(model, loader, opt, criterion, device):
 
 def main():
     p = argparse.ArgumentParser()
+    p.add_argument("--model", default="logmel_cnn", choices=MODEL_NAMES)
     p.add_argument("--epochs", type=int, default=40)
     p.add_argument("--batch-size", type=int, default=32)
     p.add_argument("--lr", type=float, default=1e-3)
@@ -93,32 +107,65 @@ def main():
     p.add_argument("--num-workers", type=int, default=4)
     p.add_argument("--device", default="auto")
     p.add_argument("--seed", type=int, default=1337)
-    p.add_argument("--dropout", type=float, default=0.1)
-    p.add_argument("--head-dropout", type=float, default=0.3)
-    p.add_argument("--out", default="results/models/cnn_best.pt")
-    p.add_argument("--history", default="results/tables/cnn_history.csv")
+    p.add_argument("--dropout", type=float, default=None,
+                   help="default depends on the model")
+    p.add_argument("--head-dropout", type=float, default=0.3,
+                   help="logmel_cnn only")
+    # Fusion initialises its two branches from already-trained checkpoints.
+    # Both spellings accepted so run_training.sh works either way.
+    p.add_argument("--cnn-checkpoint", "--cnn_checkpoint", dest="cnn_checkpoint",
+                   default=None, help="fusion only: Level 1 branch weights")
+    p.add_argument("--beats-aasist-checkpoint", "--beats_aasist_checkpoint",
+                   dest="beats_aasist_checkpoint", default=None,
+                   help="fusion only: Level 3 branch weights")
+    p.add_argument("--freeze-branches", action="store_true",
+                   help="fusion only: train just the joint head")
+    p.add_argument("--out", default=None,
+                   help="default results/models/<model>_best.pt")
+    p.add_argument("--history", default=None,
+                   help="default results/tables/<model>_history.csv")
     a = p.parse_args()
+
+    a.out = a.out or f"results/models/{a.model}_best.pt"
+    a.history = a.history or f"results/tables/{a.model}_history.csv"
 
     set_seed(a.seed)
     device = pick_device(a.device)
 
-    train_loader = make_loader("train", mode="logmel", batch_size=a.batch_size,
+    # The registry says whether this model eats waveforms or spectrograms.
+    mode = input_mode(a.model)
+    train_loader = make_loader("train", mode=mode, batch_size=a.batch_size,
                                num_workers=a.num_workers)
-    val_loader = make_loader("validation", mode="logmel", batch_size=a.batch_size,
+    val_loader = make_loader("validation", mode=mode, batch_size=a.batch_size,
                              shuffle=False, num_workers=a.num_workers)
 
+    print(f"model={a.model} (level {LEVEL[a.model]}), input mode={mode}")
     print(train_loader.dataset.describe())
     print(val_loader.dataset.describe())
 
-    model = LogMelCNN(dropout=a.dropout, head_dropout=a.head_dropout).to(device)
+    model_kwargs = {}
+    if a.dropout is not None:
+        model_kwargs["dropout"] = a.dropout
+    if a.model == "logmel_cnn":
+        model_kwargs.setdefault("dropout", 0.1)
+        model_kwargs["head_dropout"] = a.head_dropout
+    if a.model == "fusion":
+        model_kwargs.update(cnn_checkpoint=a.cnn_checkpoint,
+                            beats_aasist_checkpoint=a.beats_aasist_checkpoint,
+                            freeze_branches=a.freeze_branches)
+
+    model = build_model(a.model, **model_kwargs).to(device)
     pos_weight = train_loader.dataset.class_weights().to(device)
     criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
-    opt = torch.optim.Adam(model.parameters(), lr=a.lr,
-                           weight_decay=a.weight_decay)
+    # Only optimise what is actually trainable: the Level 3 frontend is frozen,
+    # and fusion can freeze both branches.
+    opt = torch.optim.Adam([q for q in model.parameters() if q.requires_grad],
+                           lr=a.lr, weight_decay=a.weight_decay)
     sched = torch.optim.lr_scheduler.ReduceLROnPlateau(
         opt, mode="min", factor=0.5, patience=3)
 
-    print(f"\ndevice={device}  params={model.n_params():,}  "
+    n_params = sum(q.numel() for q in model.parameters() if q.requires_grad)
+    print(f"\ndevice={device}  trainable params={n_params:,}  "
           f"pos_weight={pos_weight.item():.3f}  lr={a.lr}")
     print(f"{'ep':>3} {'train_loss':>11} {'val_loss':>9} {'val_eer':>8} "
           f"{'val_auc':>8} {'lr':>8} {'sec':>6}")
@@ -148,9 +195,9 @@ def main():
             best_eer, best_epoch = m["eer"], ep
             torch.save({
                 "state_dict": model.state_dict(),
-                "model": "LogMelCNN",
-                "model_kwargs": {"dropout": a.dropout,
-                                 "head_dropout": a.head_dropout},
+                "model": a.model,
+                "model_kwargs": model_kwargs,
+                "input_mode": mode,
                 "epoch": ep, "val_eer": best_eer, "args": vars(a),
             }, a.out)
         elif ep - best_epoch >= a.patience:
@@ -162,7 +209,7 @@ def main():
     print(f"checkpoint -> {a.out}")
     print(f"history    -> {a.history}")
     print("\nNow evaluate on the test split (the only split with G05-G07):")
-    print("    python -m src.evaluation.evaluate")
+    print(f"    python -m src.evaluation.evaluate --checkpoint {a.out}")
 
 
 if __name__ == "__main__":

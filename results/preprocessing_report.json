@@ -1,0 +1,139 @@
+{
+  "target_sample_rate_hz": 16000,
+  "target_channels": 1,
+  "target_duration_seconds": 4.0,
+  "target_samples": 64000,
+  "per_split": {
+    "train": {
+      "metadata_rows": 6000,
+      "valid_clips": 6000,
+      "invalid_clips": 0,
+      "problems": [],
+      "generator_counts": {
+        "G01": 1200,
+        "G02": 1200,
+        "G03": 1200,
+        "G04": 1200,
+        "REAL": 1200
+      },
+      "label_counts": {
+        "1": 4800,
+        "0": 1200
+      },
+      "source_dataset_counts": {
+        "TUTASC2019Dev": 4800,
+        "UrbanSound8K": 600,
+        "TUTSED2017Dev": 300,
+        "TUTSED2016Dev": 250,
+        "TUTSED2016Eval": 50
+      },
+      "stats": {
+        "sr": {
+          "16000": 6000
+        },
+        "channels": {
+          "1": 6000
+        },
+        "duration": {
+          "4.0": 6000
+        },
+        "samples": {
+          "64000": 6000
+        }
+      }
+    },
+    "validation": {
+      "metadata_rows": 1500,
+      "valid_clips": 1500,
+      "invalid_clips": 0,
+      "problems": [],
+      "generator_counts": {
+        "G01": 300,
+        "G02": 300,
+        "G03": 300,
+        "G04": 300,
+        "REAL": 300
+      },
+      "label_counts": {
+        "1": 1200,
+        "0": 300
+      },
+      "source_dataset_counts": {
+        "TUTASC2019Dev": 1200,
+        "UrbanSound8K": 150,
+        "TUTSED2017Dev": 150
+      },
+      "stats": {
+        "sr": {
+          "16000": 1500
+        },
+        "channels": {
+          "1": 1500
+        },
+        "duration": {
+          "4.0": 1500
+        },
+        "samples": {
+          "64000": 1500
+        }
+      }
+    },
+    "test": {
+      "metadata_rows": 2400,
+      "valid_clips": 2400,
+      "invalid_clips": 0,
+      "problems": [],
+      "generator_counts": {
+        "G01": 300,
+        "G02": 300,
+        "G03": 300,
+        "G04": 300,
+        "G05": 300,
+        "G06": 300,
+        "G07": 300,
+        "REAL": 300
+      },
+      "label_counts": {
+        "1": 2100,
+        "0": 300
+      },
+      "source_dataset_counts": {
+        "TUTASC2019Dev": 1440,
+        "UrbanSound8K": 240,
+        "TUTSED2017Dev": 240,
+        "DCASE2023Task7": 240,
+        "Clotho": 240
+      },
+      "stats": {
+        "sr": {
+          "16000": 2400
+        },
+        "channels": {
+          "1": 2400
+        },
+        "duration": {
+          "4.0": 2400
+        },
+        "samples": {
+          "64000": 2400
+        }
+      }
+    }
+  },
+  "totals": {
+    "valid_clips": 9900,
+    "invalid_clips": 0,
+    "pooled_sr_distribution": {
+      "16000": 9900
+    },
+    "pooled_channel_distribution": {
+      "1": 9900
+    },
+    "pooled_duration_distribution": {
+      "4.0": 9900
+    },
+    "pooled_samples_distribution": {
+      "64000": 9900
+    }
+  }
+}
