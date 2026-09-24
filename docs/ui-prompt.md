@@ -101,7 +101,7 @@ and nothing else.
 
 ## Screens
 
-Five views in a persistent left nav (top bar under 900px). Open on view 0.
+Six views in a persistent left nav (top bar under 900px). Open on view 0.
 
 ### 0. The question — the landing view
 
@@ -122,7 +122,58 @@ State the problem in the researcher's own terms, in this order:
 Resist the urge to build a marketing hero. This is the abstract of a paper,
 rendered well.
 
-### 1. "Can you tell?" — the hook
+### 1. Test it yourself — the live detector
+
+**The trained model actually runs here, in the browser.** This is not a replay
+of stored results: the exported network is fetched and executed on whatever
+audio the user provides.
+
+```
+model:  {baseUrl}model/logmel_cnn.onnx        5.31 MB, ONNX opset 17
+input:  "waveform"   float32 [batch, 64000]   16 kHz mono, raw
+outputs:
+  "p_fake"     float32 [batch]        probability the clip is AI-generated
+  "axis_pos"   float32 [batch]        position on the real -> seen-fake axis
+  "embedding"  float32 [batch, 128]   penultimate features
+```
+
+Use `onnxruntime-web` from a CDN. Fetch the model lazily — only when the user
+first opens this view — and show real progress while it downloads, because
+5.31 MB is not instant on a phone.
+
+**Audio handling.** Accept drag-and-drop, a file picker, and microphone
+recording. Decode with `AudioContext.decodeAudioData`, downmix to mono, resample
+to exactly 16 kHz with an `OfflineAudioContext`, then take exactly 64,000
+samples (4.000 s). Pad with zeros if shorter. If longer, use the first 4 seconds
+but say so, and offer a simple slider to choose which 4-second window to send.
+
+**Do not normalise the audio in JavaScript.** Peak normalisation is baked into
+the exported graph. Doing it again in JS would change the input the model sees
+and silently degrade every prediction.
+
+**The result panel** shows, in this order:
+
+1. The verdict — "likely AI-generated" or "likely real" — with `p_fake` as a
+   labelled bar, not a bare number.
+2. The clip dropped onto the **same 0→1 axis as view 3**, using `axis_pos`, with
+   the REAL / seen / unseen reference bands behind it. This is the payoff: a
+   user's own audio placed in the same geometry as the research finding.
+3. The log-Mel spectrogram the model computed, if you can render it.
+
+**Three honesty requirements, all non-negotiable:**
+
+- The model was trained on **environmental sound** — 4-second field recordings.
+  Speech, music, or silence is out of distribution and the output is not
+  meaningful. Detect the obvious cases where you can and warn; otherwise carry a
+  standing note on this view.
+- `axis_pos` is a linear projection, so it is exact for new audio. The **t-SNE
+  map in view 4 cannot place new points** — t-SNE has no transform for unseen
+  data. Never plot a user's clip on that map; place it on the axis instead, and
+  say why if the user might expect otherwise.
+- This detector reaches 0.0242 EER on generators it trained on and 0.0833 on
+  ones it did not. It is a course research model, not a production tool. Say so.
+
+### 2. "Can you tell?" — the hook
 
 Present one clip at a time. The user guesses **Real** or **AI-generated**, then
 the answer is revealed along with what the model thought and where that clip
@@ -135,7 +186,9 @@ it. End the round with "you scored 6/10; the detector scores 9.2/10 on
 generators it trained on, and 7.7/10 on ones it didn't."
 
 **Audio.** 80 real clips are hosted and fetchable. Build the URL as
-`audioBaseUrl + point.f` — both fields are in the data file. The host sends
+`audioBaseUrl + point.f` — both fields are in the data file. The ONNX model in
+view 1 sits alongside them, at `audioBaseUrl` with `audio/` swapped for
+`model/logmel_cnn.onnx`. The host sends
 `Access-Control-Allow-Origin: *`, so plain `<audio>` playback and Web Audio
 decoding (for a waveform or spectrogram) both work; set `crossOrigin="anonymous"`
 if you decode.
@@ -151,7 +204,7 @@ generated versions, drawn from all five source datasets in the test split. So
 the challenge can offer the *same underlying recording* as real and as seven
 different fakes, which is the sharpest version of the question.
 
-### 2. The axis — the core explanation
+### 3. The axis — the core explanation
 
 The centrepiece. A horizontal axis from 0.0 to ~1.3, labelled **"real centroid"**
 at 0 and **"seen-fake centroid"** at 1. For each of the eight groups (REAL,
@@ -168,7 +221,7 @@ model learned fake looks like, (3) here is where the unseen generators actually
 landed, (4) that shortfall is the generalisation gap, (5) and this is why the
 error rate triples.
 
-### 3. The map — 2-D feature space
+### 4. The map — 2-D feature space
 
 Scatter plot of `x`/`y` from the data, coloured by group. Filter chips for
 real / seen / unseen and for individual generators. Clicking a point opens a
@@ -176,11 +229,11 @@ panel with its generator, real model name, axis position, model logit, and audio
 if available. Show the three group centroids as distinct markers.
 
 Be honest in a caption: t-SNE distances are not metric — this is a view of the
-structure, and the numbers in view 2 are the actual evidence.
+structure, and the numbers in view 3 are the actual evidence.
 
-### 4. What it costs — results, and the answer to the question
+### 5. What it costs — results, and the answer to the question
 
-Show the error rates, framed as the consequence of views 2 and 3, and as the
+Show the error rates, framed as the consequence of views 3 and 4, and as the
 evidence for the negative answer stated on the landing view.
 
 | Model | seen EER | unseen EER | gap |
@@ -274,18 +327,23 @@ Keyboard-navigable with visible focus rings; ARIA labels on all controls.
 ## Technical
 
 - React + TypeScript, Recharts or D3 for the visuals, Tailwind if available.
-- Data from the attached JSON only. No backend, no fetching, no mock API.
+- `onnxruntime-web` from a CDN for view 1. WASM backend; do not require WebGPU.
+- Static data from the attached JSON. No backend and no API: the only network
+  requests are the audio clips and the ONNX model, both from the URL above.
 - No routing library; view switching is local state.
-- Renders correctly with no network; audio is the only thing that needs one,
-  and its absence must never break a view.
+- Views 0, 2, 3, 4 and 5 render fully with no network. Views 1 and 2 need
+  fetches; if either fails, show a clear recoverable message and leave the rest
+  of the app working. A failed model download must never blank the page.
 - Transitions under 200ms.
 
 ## Do not
 
 - Do not invent data points, models, generators or numbers. What is given is
   exact and complete.
-- Do not claim the app runs the detector. It displays precomputed outputs; say
-  so where a user might assume otherwise.
+- Do not claim views 2-5 run the model. Only view 1 does; everything else
+  displays precomputed outputs, and the app should be clear about which is which.
+- Do not plot user-supplied audio on the t-SNE map. Use the axis.
+- Do not peak-normalise audio in JavaScript; the model already does it.
 - Do not present t-SNE distances as real distances.
 - Do not add login, user accounts, settings pages or PDF export.
 - Do not round the axis positions or EERs beyond the precision given.
