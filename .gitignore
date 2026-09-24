@@ -41,3 +41,7 @@ env/
 speech-project.zip
 speech-project-results/
 speechh.ipynb
+
+# UI asset bundle - regenerate with `python3 -m src.export_ui_data`
+ui-data/clips/
+ui-data/spectrograms/

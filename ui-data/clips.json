@@ -1,0 +1,578 @@
+[
+ {
+  "id": "000331_REAL",
+  "sourceId": 331,
+  "generator": "REAL",
+  "generatorName": "Real recording",
+  "label": 0,
+  "seen": null,
+  "sourceDataset": "UrbanSound8K",
+  "audio": "clips/000331_REAL.mp3",
+  "spectrogram": "spectrograms/000331_REAL.png",
+  "scores": {
+   "logmel_cnn": -11.777,
+   "cnn": 1.631,
+   "aasist": -0.075,
+   "beats_aasist": 2.78,
+   "fusion": 0.523
+  }
+ },
+ {
+  "id": "000331_G04",
+  "sourceId": 331,
+  "generator": "G04",
+  "generatorName": "AudioLDM (ATA)",
+  "label": 1,
+  "seen": true,
+  "sourceDataset": "UrbanSound8K",
+  "audio": "clips/000331_G04.mp3",
+  "spectrogram": "spectrograms/000331_G04.png",
+  "scores": {
+   "logmel_cnn": 9.957,
+   "cnn": 1.251,
+   "aasist": 2.529,
+   "beats_aasist": 1.718,
+   "fusion": 2.675
+  }
+ },
+ {
+  "id": "000331_G07",
+  "sourceId": 331,
+  "generator": "G07",
+  "generatorName": "AudioLDM 2 (ATA)",
+  "label": 1,
+  "seen": false,
+  "sourceDataset": "UrbanSound8K",
+  "audio": "clips/000331_G07.mp3",
+  "spectrogram": "spectrograms/000331_G07.png",
+  "scores": {
+   "logmel_cnn": -0.051,
+   "cnn": 1.407,
+   "aasist": 2.143,
+   "beats_aasist": 4.021,
+   "fusion": 2.248
+  }
+ },
+ {
+  "id": "000331_G01",
+  "sourceId": 331,
+  "generator": "G01",
+  "generatorName": "AudioLDM (TTA)",
+  "label": 1,
+  "seen": true,
+  "sourceDataset": "UrbanSound8K",
+  "audio": "clips/000331_G01.mp3",
+  "spectrogram": "spectrograms/000331_G01.png",
+  "scores": {
+   "logmel_cnn": 9.327,
+   "cnn": 2.468,
+   "aasist": 6.418,
+   "beats_aasist": 3.328,
+   "fusion": 5.923
+  }
+ },
+ {
+  "id": "000331_G02",
+  "sourceId": 331,
+  "generator": "G02",
+  "generatorName": "AudioLDM 2 (TTA)",
+  "label": 1,
+  "seen": true,
+  "sourceDataset": "UrbanSound8K",
+  "audio": "clips/000331_G02.mp3",
+  "spectrogram": "spectrograms/000331_G02.png",
+  "scores": {
+   "logmel_cnn": 11.943,
+   "cnn": 3.126,
+   "aasist": 4.038,
+   "beats_aasist": 4.761,
+   "fusion": 8.03
+  }
+ },
+ {
+  "id": "000331_G03",
+  "sourceId": 331,
+  "generator": "G03",
+  "generatorName": "AudioGen (TTA)",
+  "label": 1,
+  "seen": true,
+  "sourceDataset": "UrbanSound8K",
+  "audio": "clips/000331_G03.mp3",
+  "spectrogram": "spectrograms/000331_G03.png",
+  "scores": {
+   "logmel_cnn": 5.927,
+   "cnn": 1.697,
+   "aasist": 3.646,
+   "beats_aasist": 0.988,
+   "fusion": -0.127
+  }
+ },
+ {
+  "id": "000331_G05",
+  "sourceId": 331,
+  "generator": "G05",
+  "generatorName": "AudioLCM (TTA)",
+  "label": 1,
+  "seen": false,
+  "sourceDataset": "UrbanSound8K",
+  "audio": "clips/000331_G05.mp3",
+  "spectrogram": "spectrograms/000331_G05.png",
+  "scores": {
+   "logmel_cnn": 4.619,
+   "cnn": 2.81,
+   "aasist": 0.008,
+   "beats_aasist": 1.081,
+   "fusion": 2.543
+  }
+ },
+ {
+  "id": "000331_G06",
+  "sourceId": 331,
+  "generator": "G06",
+  "generatorName": "TangoFlux (TTA)",
+  "label": 1,
+  "seen": false,
+  "sourceDataset": "UrbanSound8K",
+  "audio": "clips/000331_G06.mp3",
+  "spectrogram": "spectrograms/000331_G06.png",
+  "scores": {
+   "logmel_cnn": -2.821,
+   "cnn": 1.528,
+   "aasist": -0.99,
+   "beats_aasist": 1.622,
+   "fusion": 1.035
+  }
+ },
+ {
+  "id": "002784_REAL",
+  "sourceId": 2784,
+  "generator": "REAL",
+  "generatorName": "Real recording",
+  "label": 0,
+  "seen": null,
+  "sourceDataset": "TUTASC2019Dev",
+  "audio": "clips/002784_REAL.mp3",
+  "spectrogram": "spectrograms/002784_REAL.png",
+  "scores": {
+   "logmel_cnn": -6.845,
+   "cnn": 0.656,
+   "aasist": -4.154,
+   "beats_aasist": -4.036,
+   "fusion": -4.339
+  }
+ },
+ {
+  "id": "002784_G04",
+  "sourceId": 2784,
+  "generator": "G04",
+  "generatorName": "AudioLDM (ATA)",
+  "label": 1,
+  "seen": true,
+  "sourceDataset": "TUTASC2019Dev",
+  "audio": "clips/002784_G04.mp3",
+  "spectrogram": "spectrograms/002784_G04.png",
+  "scores": {
+   "logmel_cnn": 9.813,
+   "cnn": 1.886,
+   "aasist": 9.154,
+   "beats_aasist": 4.161,
+   "fusion": 8.489
+  }
+ },
+ {
+  "id": "002784_G07",
+  "sourceId": 2784,
+  "generator": "G07",
+  "generatorName": "AudioLDM 2 (ATA)",
+  "label": 1,
+  "seen": false,
+  "sourceDataset": "TUTASC2019Dev",
+  "audio": "clips/002784_G07.mp3",
+  "spectrogram": "spectrograms/002784_G07.png",
+  "scores": {
+   "logmel_cnn": 1.926,
+   "cnn": 0.521,
+   "aasist": 6.01,
+   "beats_aasist": -3.764,
+   "fusion": -4.342
+  }
+ },
+ {
+  "id": "002784_G01",
+  "sourceId": 2784,
+  "generator": "G01",
+  "generatorName": "AudioLDM (TTA)",
+  "label": 1,
+  "seen": true,
+  "sourceDataset": "TUTASC2019Dev",
+  "audio": "clips/002784_G01.mp3",
+  "spectrogram": "spectrograms/002784_G01.png",
+  "scores": {
+   "logmel_cnn": 10.402,
+   "cnn": 1.382,
+   "aasist": 8.287,
+   "beats_aasist": 5.781,
+   "fusion": 6.293
+  }
+ },
+ {
+  "id": "002784_G02",
+  "sourceId": 2784,
+  "generator": "G02",
+  "generatorName": "AudioLDM 2 (TTA)",
+  "label": 1,
+  "seen": true,
+  "sourceDataset": "TUTASC2019Dev",
+  "audio": "clips/002784_G02.mp3",
+  "spectrogram": "spectrograms/002784_G02.png",
+  "scores": {
+   "logmel_cnn": 6.084,
+   "cnn": 2.386,
+   "aasist": 7.425,
+   "beats_aasist": 1.37,
+   "fusion": 4.71
+  }
+ },
+ {
+  "id": "002784_G03",
+  "sourceId": 2784,
+  "generator": "G03",
+  "generatorName": "AudioGen (TTA)",
+  "label": 1,
+  "seen": true,
+  "sourceDataset": "TUTASC2019Dev",
+  "audio": "clips/002784_G03.mp3",
+  "spectrogram": "spectrograms/002784_G03.png",
+  "scores": {
+   "logmel_cnn": 8.706,
+   "cnn": 2.756,
+   "aasist": 7.899,
+   "beats_aasist": 4.574,
+   "fusion": 7.723
+  }
+ },
+ {
+  "id": "002784_G05",
+  "sourceId": 2784,
+  "generator": "G05",
+  "generatorName": "AudioLCM (TTA)",
+  "label": 1,
+  "seen": false,
+  "sourceDataset": "TUTASC2019Dev",
+  "audio": "clips/002784_G05.mp3",
+  "spectrogram": "spectrograms/002784_G05.png",
+  "scores": {
+   "logmel_cnn": 1.287,
+   "cnn": 3.233,
+   "aasist": 0.802,
+   "beats_aasist": -2.33,
+   "fusion": 1.735
+  }
+ },
+ {
+  "id": "002784_G06",
+  "sourceId": 2784,
+  "generator": "G06",
+  "generatorName": "TangoFlux (TTA)",
+  "label": 1,
+  "seen": false,
+  "sourceDataset": "TUTASC2019Dev",
+  "audio": "clips/002784_G06.mp3",
+  "spectrogram": "spectrograms/002784_G06.png",
+  "scores": {
+   "logmel_cnn": 2.263,
+   "cnn": 2.924,
+   "aasist": 0.556,
+   "beats_aasist": 6.767,
+   "fusion": 8.286
+  }
+ },
+ {
+  "id": "004387_REAL",
+  "sourceId": 4387,
+  "generator": "REAL",
+  "generatorName": "Real recording",
+  "label": 0,
+  "seen": null,
+  "sourceDataset": "DCASE2023Task7",
+  "audio": "clips/004387_REAL.mp3",
+  "spectrogram": "spectrograms/004387_REAL.png",
+  "scores": {
+   "logmel_cnn": -6.088,
+   "cnn": 1.469,
+   "aasist": 3.065,
+   "beats_aasist": 3.833,
+   "fusion": 0.921
+  }
+ },
+ {
+  "id": "004387_G04",
+  "sourceId": 4387,
+  "generator": "G04",
+  "generatorName": "AudioLDM (ATA)",
+  "label": 1,
+  "seen": true,
+  "sourceDataset": "DCASE2023Task7",
+  "audio": "clips/004387_G04.mp3",
+  "spectrogram": "spectrograms/004387_G04.png",
+  "scores": {
+   "logmel_cnn": 8.944,
+   "cnn": 1.279,
+   "aasist": 4.168,
+   "beats_aasist": 2.332,
+   "fusion": 2.117
+  }
+ },
+ {
+  "id": "004387_G07",
+  "sourceId": 4387,
+  "generator": "G07",
+  "generatorName": "AudioLDM 2 (ATA)",
+  "label": 1,
+  "seen": false,
+  "sourceDataset": "DCASE2023Task7",
+  "audio": "clips/004387_G07.mp3",
+  "spectrogram": "spectrograms/004387_G07.png",
+  "scores": {
+   "logmel_cnn": 2.646,
+   "cnn": 1.705,
+   "aasist": 6.56,
+   "beats_aasist": 3.769,
+   "fusion": 0.734
+  }
+ },
+ {
+  "id": "004387_G01",
+  "sourceId": 4387,
+  "generator": "G01",
+  "generatorName": "AudioLDM (TTA)",
+  "label": 1,
+  "seen": true,
+  "sourceDataset": "DCASE2023Task7",
+  "audio": "clips/004387_G01.mp3",
+  "spectrogram": "spectrograms/004387_G01.png",
+  "scores": {
+   "logmel_cnn": 11.234,
+   "cnn": 1.119,
+   "aasist": 5.666,
+   "beats_aasist": -1.052,
+   "fusion": -0.146
+  }
+ },
+ {
+  "id": "004387_G02",
+  "sourceId": 4387,
+  "generator": "G02",
+  "generatorName": "AudioLDM 2 (TTA)",
+  "label": 1,
+  "seen": true,
+  "sourceDataset": "DCASE2023Task7",
+  "audio": "clips/004387_G02.mp3",
+  "spectrogram": "spectrograms/004387_G02.png",
+  "scores": {
+   "logmel_cnn": 8.193,
+   "cnn": 1.514,
+   "aasist": 5.394,
+   "beats_aasist": 0.961,
+   "fusion": 1.888
+  }
+ },
+ {
+  "id": "004387_G03",
+  "sourceId": 4387,
+  "generator": "G03",
+  "generatorName": "AudioGen (TTA)",
+  "label": 1,
+  "seen": true,
+  "sourceDataset": "DCASE2023Task7",
+  "audio": "clips/004387_G03.mp3",
+  "spectrogram": "spectrograms/004387_G03.png",
+  "scores": {
+   "logmel_cnn": 6.185,
+   "cnn": 1.948,
+   "aasist": 2.042,
+   "beats_aasist": 2.921,
+   "fusion": 1.377
+  }
+ },
+ {
+  "id": "004387_G05",
+  "sourceId": 4387,
+  "generator": "G05",
+  "generatorName": "AudioLCM (TTA)",
+  "label": 1,
+  "seen": false,
+  "sourceDataset": "DCASE2023Task7",
+  "audio": "clips/004387_G05.mp3",
+  "spectrogram": "spectrograms/004387_G05.png",
+  "scores": {
+   "logmel_cnn": 3.723,
+   "cnn": 3.883,
+   "aasist": 1.856,
+   "beats_aasist": 2.373,
+   "fusion": 3.967
+  }
+ },
+ {
+  "id": "004387_G06",
+  "sourceId": 4387,
+  "generator": "G06",
+  "generatorName": "TangoFlux (TTA)",
+  "label": 1,
+  "seen": false,
+  "sourceDataset": "DCASE2023Task7",
+  "audio": "clips/004387_G06.mp3",
+  "spectrogram": "spectrograms/004387_G06.png",
+  "scores": {
+   "logmel_cnn": 4.49,
+   "cnn": 1.959,
+   "aasist": 0.258,
+   "beats_aasist": 1.752,
+   "fusion": 1.57
+  }
+ },
+ {
+  "id": "004910_REAL",
+  "sourceId": 4910,
+  "generator": "REAL",
+  "generatorName": "Real recording",
+  "label": 0,
+  "seen": null,
+  "sourceDataset": "Clotho",
+  "audio": "clips/004910_REAL.mp3",
+  "spectrogram": "spectrograms/004910_REAL.png",
+  "scores": {
+   "logmel_cnn": -2.425,
+   "cnn": 0.899,
+   "aasist": 4.257,
+   "beats_aasist": 2.047,
+   "fusion": 1.951
+  }
+ },
+ {
+  "id": "004910_G04",
+  "sourceId": 4910,
+  "generator": "G04",
+  "generatorName": "AudioLDM (ATA)",
+  "label": 1,
+  "seen": true,
+  "sourceDataset": "Clotho",
+  "audio": "clips/004910_G04.mp3",
+  "spectrogram": "spectrograms/004910_G04.png",
+  "scores": {
+   "logmel_cnn": 7.663,
+   "cnn": 1.911,
+   "aasist": 5.866,
+   "beats_aasist": 3.227,
+   "fusion": 3.516
+  }
+ },
+ {
+  "id": "004910_G07",
+  "sourceId": 4910,
+  "generator": "G07",
+  "generatorName": "AudioLDM 2 (ATA)",
+  "label": 1,
+  "seen": false,
+  "sourceDataset": "Clotho",
+  "audio": "clips/004910_G07.mp3",
+  "spectrogram": "spectrograms/004910_G07.png",
+  "scores": {
+   "logmel_cnn": 6.833,
+   "cnn": 0.63,
+   "aasist": 2.975,
+   "beats_aasist": 3.007,
+   "fusion": 3.647
+  }
+ },
+ {
+  "id": "004910_G01",
+  "sourceId": 4910,
+  "generator": "G01",
+  "generatorName": "AudioLDM (TTA)",
+  "label": 1,
+  "seen": true,
+  "sourceDataset": "Clotho",
+  "audio": "clips/004910_G01.mp3",
+  "spectrogram": "spectrograms/004910_G01.png",
+  "scores": {
+   "logmel_cnn": 4.004,
+   "cnn": 1.473,
+   "aasist": 3.342,
+   "beats_aasist": 5.65,
+   "fusion": 7.724
+  }
+ },
+ {
+  "id": "004910_G02",
+  "sourceId": 4910,
+  "generator": "G02",
+  "generatorName": "AudioLDM 2 (TTA)",
+  "label": 1,
+  "seen": true,
+  "sourceDataset": "Clotho",
+  "audio": "clips/004910_G02.mp3",
+  "spectrogram": "spectrograms/004910_G02.png",
+  "scores": {
+   "logmel_cnn": 4.978,
+   "cnn": 1.194,
+   "aasist": 5.02,
+   "beats_aasist": 4.443,
+   "fusion": 6.477
+  }
+ },
+ {
+  "id": "004910_G03",
+  "sourceId": 4910,
+  "generator": "G03",
+  "generatorName": "AudioGen (TTA)",
+  "label": 1,
+  "seen": true,
+  "sourceDataset": "Clotho",
+  "audio": "clips/004910_G03.mp3",
+  "spectrogram": "spectrograms/004910_G03.png",
+  "scores": {
+   "logmel_cnn": -0.01,
+   "cnn": 1.638,
+   "aasist": 2.87,
+   "beats_aasist": 2.094,
+   "fusion": 4.744
+  }
+ },
+ {
+  "id": "004910_G05",
+  "sourceId": 4910,
+  "generator": "G05",
+  "generatorName": "AudioLCM (TTA)",
+  "label": 1,
+  "seen": false,
+  "sourceDataset": "Clotho",
+  "audio": "clips/004910_G05.mp3",
+  "spectrogram": "spectrograms/004910_G05.png",
+  "scores": {
+   "logmel_cnn": -2.056,
+   "cnn": 1.594,
+   "aasist": 3.493,
+   "beats_aasist": 3.756,
+   "fusion": 4.741
+  }
+ },
+ {
+  "id": "004910_G06",
+  "sourceId": 4910,
+  "generator": "G06",
+  "generatorName": "TangoFlux (TTA)",
+  "label": 1,
+  "seen": false,
+  "sourceDataset": "Clotho",
+  "audio": "clips/004910_G06.mp3",
+  "spectrogram": "spectrograms/004910_G06.png",
+  "scores": {
+   "logmel_cnn": 1.881,
+   "cnn": 0.54,
+   "aasist": 2.703,
+   "beats_aasist": 3.582,
+   "fusion": 2.861
+  }
+ }
+]

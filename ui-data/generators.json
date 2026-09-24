@@ -1,0 +1,58 @@
+[
+ {
+  "id": "REAL",
+  "name": "Real recording",
+  "seen": null,
+  "unseen": false,
+  "mode": "real"
+ },
+ {
+  "id": "G01",
+  "name": "AudioLDM (TTA)",
+  "seen": true,
+  "unseen": false,
+  "mode": "text-to-audio"
+ },
+ {
+  "id": "G02",
+  "name": "AudioLDM 2 (TTA)",
+  "seen": true,
+  "unseen": false,
+  "mode": "text-to-audio"
+ },
+ {
+  "id": "G03",
+  "name": "AudioGen (TTA)",
+  "seen": true,
+  "unseen": false,
+  "mode": "text-to-audio"
+ },
+ {
+  "id": "G04",
+  "name": "AudioLDM (ATA)",
+  "seen": true,
+  "unseen": false,
+  "mode": "audio-to-audio"
+ },
+ {
+  "id": "G05",
+  "name": "AudioLCM (TTA)",
+  "seen": false,
+  "unseen": true,
+  "mode": "text-to-audio"
+ },
+ {
+  "id": "G06",
+  "name": "TangoFlux (TTA)",
+  "seen": false,
+  "unseen": true,
+  "mode": "text-to-audio"
+ },
+ {
+  "id": "G07",
+  "name": "AudioLDM 2 (ATA)",
+  "seen": false,
+  "unseen": true,
+  "mode": "audio-to-audio"
+ }
+]
