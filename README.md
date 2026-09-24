@@ -304,6 +304,22 @@ back, so a checkpoint is always scored the way it was trained. `cnn` is the one
 model immune to the difference, because per-clip log-Mel standardisation cancels
 a scalar gain exactly.
 
+## Dashboard
+
+An interactive view of these results lives in [`web/`](web/) — leaderboard,
+per-generator matrix, training curves and generator profiles.
+
+```bash
+cd web && npm install && npm run dev
+```
+
+Its numbers are generated from `results/tables/`, not hand-maintained:
+
+```bash
+python3 -m src.analysis.export_web_data          # rewrite after any training run
+python3 -m src.analysis.export_web_data --check  # fail if stale
+```
+
 ## Credits
 
 Preprocessing was built jointly. The detection models — AASIST, the

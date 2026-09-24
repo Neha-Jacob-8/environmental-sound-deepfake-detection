@@ -45,3 +45,4 @@ speechh.ipynb
 # UI asset bundle - regenerate with `python3 -m src.export_ui_data`
 ui-data/clips/
 ui-data/spectrograms/
+envsdd-audio-deepfake-detection-results.zip

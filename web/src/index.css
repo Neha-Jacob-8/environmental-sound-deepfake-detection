@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+:root {
+  --surface: #fcfcfb;
+  --surface-card: #ffffff;
+  --surface-subtle: #f6f5f3;
+  --surface-hover: #eeecea;
+  --surface-border: #e3e2de;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #74736e;
+  --grid-line: #dedddb;
+  
+  --color-series-1: #2a78d6;
+  --color-series-2: #eb6834;
+  --color-series-3: #1baf7a;
+  --color-series-4: #eda100;
+  --color-series-5: #e87ba4;
+  
+  --color-seen: #eb6834;
+  --color-unseen: #1baf7a;
+  color-scheme: light;
+}
+
+.dark {
+  --surface: #1a1a19;
+  --surface-card: #222220;
+  --surface-subtle: #272724;
+  --surface-hover: #2e2e2b;
+  --surface-border: #33322f;
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted: #8e8d83;
+  --grid-line: #33322f;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --surface: #1a1a19;
+    --surface-card: #222220;
+    --surface-subtle: #272724;
+    --surface-hover: #2e2e2b;
+    --surface-border: #33322f;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #8e8d83;
+    --grid-line: #33322f;
+    color-scheme: dark;
+  }
+}
+
+body {
+  background-color: var(--surface);
+  color: var(--text-primary);
+  font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.font-serif {
+  font-family: 'Newsreader', Georgia, serif;
+}
+
+/* Custom scrollbars that blend quietly into research aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
