@@ -105,7 +105,7 @@ export const GeneratorBreakdownView: React.FC<GeneratorBreakdownViewProps> = ({ 
             </h1>
             <p className="text-sm mt-1 text-balance" style={{ color: 'var(--text-secondary)' }}>
               A 5×7 evaluation matrix mapping every model against all seen (G01–G04) and unseen (G05–G07) generators.
-              Light cells indicate lower error rates (better detection); darker cells indicate chance-level failures.
+              Cell shading scales with EER: the more saturated the cell, the higher the error rate. Faint cells are the accurate ones; the most saturated are at chance.
             </p>
           </div>
 
@@ -385,7 +385,7 @@ export const GeneratorBreakdownView: React.FC<GeneratorBreakdownViewProps> = ({ 
               <div className="flex items-center gap-3">
                 <span>EER Sequential Ramp:</span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[11px]">0.0100 (good)</span>
+                  <span className="text-[11px]">{formatEer(minEer)} (best)</span>
                   <div 
                     className="w-32 h-3.5 rounded-xs border"
                     style={{ 

@@ -160,11 +160,12 @@ export const ModelComparisonView: React.FC<ModelComparisonViewProps> = ({
         </div>
       </div>
 
-      {/* Main Grid: Chart & Table */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* Chart above table, both full width: the table has eight columns and
+          was being clipped when the two sat side by side. */}
+      <div className="flex flex-col gap-6">
         {/* Grouped Horizontal Bar Chart */}
         <div 
-          className="lg:col-span-6 p-4 rounded-md border"
+          className="p-4 rounded-md border"
           style={{ 
             backgroundColor: 'var(--surface-card)', 
             borderColor: 'var(--grid-line)' 
@@ -356,7 +357,7 @@ export const ModelComparisonView: React.FC<ModelComparisonViewProps> = ({
 
         {/* Interactive Sortable Data Table */}
         <div 
-          className="lg:col-span-6 rounded-md border overflow-hidden"
+          className="rounded-md border overflow-hidden"
           style={{ 
             backgroundColor: 'var(--surface-card)', 
             borderColor: 'var(--grid-line)' 

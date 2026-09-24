@@ -217,7 +217,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
 
         {/* Horizontal scrollable tab buttons */}
-        <nav className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-mono">
+        <nav className="flex items-center gap-1.5 overflow-x-auto min-w-0 pb-1 text-xs font-mono">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = currentView === item.id;

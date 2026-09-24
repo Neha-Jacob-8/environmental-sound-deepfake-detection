@@ -58,7 +58,10 @@ export default function App() {
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        {/* min-w-0: a flex item defaults to min-width:auto and will not shrink
+            below its content, so a wide table or chart pushes the whole page
+            wider than the viewport instead of scrolling inside its own card. */}
+        <main className="flex-1 min-w-0 w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 overflow-y-auto">
           <div className="transition-opacity duration-150 ease-out">
             {currentView === 'overview' && (
               <OverviewView onNavigateToModel={handleNavigateToModel} />
